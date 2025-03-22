@@ -11,7 +11,7 @@
 
 - 📫 How to reach me: **elejking@umich.edu**
 
-- 📄 Resume: [King, Eleanor_CV](https://acrobat.adobe.com/id/urn:aaid:sc:US:c9f86595-3897-4aab-84fe-21bfad6cb3a8)
+- 📄 Resume: [King, Eleanor](https://acrobat.adobe.com/id/urn:aaid:sc:US:c9f86595-3897-4aab-84fe-21bfad6cb3a8)
 
 - 📚 **Previous courses (Statistics):** Calculus I-III, Multivariate Calculus, Linear Algebra, Introductory Programming (C++, Python), Introductory Statistics (R Programming), Applied Regression Analysis (R Programming), Introduction to Probability Theory, Introduction to Theoretical Statistics, Introductory Statistical Computing (R Programming, SQL), Statistics and Artificial Intelligence (Python), Computational Methods in Statistics and Data Science (R Programming)
 
