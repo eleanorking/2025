@@ -1,0 +1,109 @@
+---
+title: "Stats 406, Homework 01"
+author: "Eleanor King, elejking"
+date: "2024-09-06"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(bench)
+```
+
+## Setup
+
+If you have not installed the `tidyverse` collection of packages, you should
+receive a prompt at the top of your editor window to do so. We will also need the `bench` package.
+
+You can verify that they are installed by clicking on the "Knit" button in the
+tool bar of the editing window.
+
+## Problem 1 (2 pts)
+
+### Part (a) (1 pt)
+
+The following block of text is adapted from the [Wikipedia page on R](https://en.wikipedia.org/wiki/R_(programming_language)). If you look at the source code for this document (the .Rmd file), you will see that the text is in HTML format. Your job is to recreate the RMarkdown I used to create this formatting.
+
+- [Markdown basics](https://www.markdownguide.org/basic-syntax/) 
+- The `Help > Cheatsheets > R Markdown Cheat Sheet` menu option
+* You may find it easiest to copy the text from the rendered HTML into this .Rmd file, and then perform the necessary formatting.
+* For the block of R code, **you do not need to actually execute this code**. (Use `eval = FALSE` in the chunk header)
+* The Mandelbrot image can be found at `https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Mandelbrot_Creation_Animation.gif/400px-Mandelbrot_Creation_Animation.gif`
+
+---
+
+<h3>Mandelbrot set</h3>
+<p>Short R code calculating <a href="https://en.wikipedia.org/wiki/Mandelbrot_set">Mandelbrot set</a> through the first 20 iterations of equation <span class="math inline">\(z = z^2 + c\)</span> plotted for different complex constants <span class="math inline">\(c\)</span>. This example demonstrates:</p>
+<ul>
+<li>use of <strong>community-developed</strong> external libraries (called packages), in this case caTools package</li>
+<li>handling of <a href="https://en.wikipedia.org/wiki/Complex_numbers">complex numbers</a></li>
+<li>multidimensional arrays of numbers used as basic data type, see variables <code>C</code>, <code>Z</code> and <code>X</code>.</li>
+</ul>
+<pre class="r"><code>install.packages(&quot;caTools&quot;)  # install external package
+library(caTools)             # external package providing write.gif function
+jet.colors &lt;- colorRampPalette(c(&quot;red&quot;, &quot;blue&quot;, &quot;#007FFF&quot;, &quot;cyan&quot;, &quot;#7FFF7F&quot;,
+                                 &quot;yellow&quot;, &quot;#FF7F00&quot;, &quot;red&quot;, &quot;#7F0000&quot;))
+dx &lt;- 1500                    # define width
+dy &lt;- 1400                    # define height
+C  &lt;- complex(real = rep(seq(-2.2, 1.0, length.out = dx), each = dy),
+              imag = rep(seq(-1.2, 1.2, length.out = dy), dx))
+C &lt;- matrix(C, dy, dx)       # reshape as square matrix of complex numbers
+Z &lt;- 0                       # initialize Z to zero
+X &lt;- array(0, c(dy, dx, 20)) # initialize output 3D array
+for (k in 1:20) {            # loop with 20 iterations
+  Z &lt;- Z^2 + C               # the central difference equation
+  X[, , k] &lt;- exp(-abs(Z))   # capture results
+}
+write.gif(X, &quot;Mandelbrot.gif&quot;, col = jet.colors, delay = 100)</code></pre>
+<!-- <p><img src = "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Mandelbrot_Creation_Animation.gif/400px-Mandelbrot_Creation_Animation.gif" /></p> -->
+---
+
+
+### Part (b) (1 pt)
+
+In this section we will use RMarkdown's math notation system. If you have encountered LaTeX's math notation, you will find it very familiar (though I am not expecting students to be know this system). 
+
+[Cosma Shazili's reference](http://www.stat.cmu.edu/~cshalizi/rmarkdown/#math-in-r-markdown) is a very helpful reference for notation commonly used in statistics.
+
+In following, replace the `\ldots` in the prompts with appropriate math notation.
+
+By default, all characters are treated as single letter variable names:
+
+\[
+2x + yz
+\]
+
+Write the expression for a line "y = m x + b":
+
+\[
+y = mx + b
+\]
+
+
+All commands (sometimes called "macros") for this language use `\` followed by the name of the command, and zero or more arguments enclosed in curly braces `{...}`. Some examples:
+
+* $\pi$
+* $\sqrt{x}$
+* $\frac{x}{y}$
+
+We can add subscripts (`_`) and superscripts (`^`) to variables: $X_i^2$.
+
+Write the function "f" that computes Euclidean distance:
+
+![](euclidean.png)
+\[
+f(x,y) = \sqrt{x^2 + y^2}
+\]
+
+Many convenient notations for things like sums and integrals have ranges. These are achieved by using a subscript and a superscript on the command:
+
+\[
+e^x = \sum_{i=0}^\infty \frac{x^i}{i!} 
+\]
+
+Notice that to achieve the $i = 0$ in the subscript we had to wrap it in curly braces: `{i = 0}`.
+
+The `\int` command is similar to sum. Use it to notate the area under the curve of the function $\sin(x)/\cos(x)$ from 0 to $\pi/4$.
+
+![](integral.png)
