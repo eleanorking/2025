@@ -38,31 +38,7 @@ The probabilities of upward mobility for each region, along with their confidenc
 
 Table 1: Probability of upward mobility by U.S. Census Region (with Confidence Intervals)
 
-Region
-Total Lowstart
-Total Upmovers
-Probability of Upward Mobility
-Confidence Interval (Agresti-Coull)
-midwest
-288
-27
-0.094
-0.095, 0.093
-northeast
-382
-34
-0.089
-0.090, 0.088
-south
-486
-36
-0.074
-0.075, 0.073
-west
-420
-34
-0.081
-0.082, 0.080
+
 
 
 The national probability of upward mobility, corrected for regional sampling skewness, is approximately 8.3%.
