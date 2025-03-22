@@ -1,6 +1,6 @@
 # 2025
 <h1 align="center">Hi 👋, I'm Eleanor King</h1>
-<h3 align="center">Passionate about data</h3>
+<h3 align="center">[caption]</h3>
 
 - 🌱 I’m currently learning **Bayesian Data Analysis, Techniques in Survey Sampling, Advanced Data Modeling and Writing for Empirical Research**
 
