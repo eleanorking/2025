@@ -13,7 +13,7 @@
 
 - 📄 Resume: [King, Eleanor_CV](https://docs.google.com/document/d/1XmsDjvWBRQn6d7-mIMvRsherzMZCqa0UCaj2yeJUVus/edit?usp=sharing)
 
-- 📚 **Previous courses (Statistics):** Calculus I-III, Multivariate Calculus, Linear Algebra, Introductory Programming (C++, Python), Introductory Statistics (R Programming), Applied Regression Analysis, Introduction to Probability Theory, Introduction to Theoretical Statistics, Introductory Statistical Computing (R Programming, SQL), Statistics and Artificial Intelligence (Python), Computational Methods in Statistics and Data Science (R Programming)
+- 📚 **Previous courses (Statistics):** Calculus I-III, Multivariate Calculus, Linear Algebra, Introductory Programming (C++, Python), Introductory Statistics (R Programming), Applied Regression Analysis (R Programming), Introduction to Probability Theory, Introduction to Theoretical Statistics, Introductory Statistical Computing (R Programming, SQL), Statistics and Artificial Intelligence (Python), Computational Methods in Statistics and Data Science (R Programming)
 
 - 📚 **Previous courses (Economics):** Principles of Microeconomics, Principles of Macroeconomics, Intermediate Microeconomic Theory, Intermediate Macroeconomic Theory, Environmental Economics, Game Theory and Business Strategy, Industrial Organization, Growth Theory
 
