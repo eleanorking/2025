@@ -1,8 +1,10 @@
 **DATASCI 451: Bayesian Data Analysis**
 
-An introduction to both the principles and practice of Bayesian inference for data analysis. At the end of this course students will be familiar with the Bayesian paradigm, and will be able to analyze different classes of statistical models. The course gives an introduction to the computational tools needed for Bayesian data analysis and develops statistical modeling skills through a hands-on data analysis approach. Topics include: prior/posterior distributions, Bayes rule, Markov Chain Monte Carlo computations, linear and generalized linear models, mixed effect models, hierarchical models, analysis of spatial data, model selection and comparison, model checking.
+An introduction to both the principles and practice of Bayesian inference for data analysis. Instruction on the Bayesian paradigm and analysis of different classes of statistical models. An introduction to the computational tools needed for Bayesian data analysis and develops statistical modeling skills through a hands-on data analysis approach. 
 
-Projects:
+Topics include: prior/posterior distributions, Bayes rule, Markov Chain Monte Carlo computations, linear and generalized linear models, mixed effect models, hierarchical models, analysis of spatial data, model selection and comparison, model checking.
+
+Completed Projects:
 
 - Monte Carlo Estimation
 - Bayesian Inference for Discrete Observables and Discrete Unknowns (Probability of Elvis Presley being an Identical Twin)
