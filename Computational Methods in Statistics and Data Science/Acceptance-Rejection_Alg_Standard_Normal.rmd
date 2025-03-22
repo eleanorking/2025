@@ -1,0 +1,341 @@
+---
+title: "HW06"
+author: "Eleanor King, elejking"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+set.seed(394932)
+library(tidyverse)
+library(ggplot2)
+```
+
+## Question 1 (6 points)
+
+### Part (a) (2 point)
+
+Consider the **mixture of multivariate Normals $(X_1, X_2)$** given by:
+
+\begin{align}
+  \mathbf{U} = \begin{pmatrix}U_1 \\ U_2 \end{pmatrix} &\sim N_2\left( \begin{pmatrix}0 \\0\end{pmatrix} , \begin{pmatrix} 2 & -1.5 \\ -1.5 & 2 \end{pmatrix} \right) \\
+  \mathbf{V} = \begin{pmatrix}V_1 \\ V_1 \end{pmatrix} &\sim N_2\left(\begin{pmatrix}2 \\ 2\end{pmatrix}, \begin{pmatrix}1 & 0.5 \\ 0.5 & 1\end{pmatrix}\right) \\
+  W &\sim \text{Bernoulli}(0.6)  \\
+  \mathbf{X} = \begin{pmatrix}X_1 \\ X_2 \end{pmatrix} &= W \mathbf{U} + (1 - W) \mathbf{V}
+\end{align}
+
+
+Implement a random number generator for this distribution and plot 1000 random $(X_1, X_2)$ points. There are several available multivariate Normal PRNGs available for R, but your solution should use the decomposition method we discuss in lecture. You may use `rbinom(n, size = 1, prob = 0.5)` to generate the Bernoulli RV.
+
+```{r}
+set.seed(46)
+n <- 1000
+mean_U <- c(0,0)
+mean_V <- c(2,2)
+
+cov_U <- matrix(c(2, -1.5, -1.5, 2), nrow = 2)
+cov_V <- matrix(c(1, 0.5, 0.5, 1), nrow = 2)
+
+cholesky_U <- chol(cov_U)
+cholesky_V <- chol(cov_V)
+
+x <- matrix(NA, nrow = n, ncol=2)
+
+for (i in 1:n) {
+  W <- rbinom(1, size=1, prob=0.6)
+  z <- matrix(rnorm(2), nrow=2)
+  
+  if(W == 1) {
+    x[i, ] <- (mean_U + cholesky_U %*% z)
+  } else {
+    x[i, ] <- (mean_U + cholesky_V %*% z)
+  }
+}
+
+plot(x, main = "Scatterplot of x", xlab = "X_1", ylab = "X_2", col=ifelse(x[,1] > 1.5, "blue", "red")) 
+# Samples from U in red, samples from V in blue
+```
+
+### Part (b) (2 points)
+
+For any two bivariate Normal distributions $U$ and $V$ with means $E(\mathbf{U}) = \mathbf{\mu_1} = (\mu_{11}, \mu_{12})^T$ and $E(\mathbf{V}) = \mathbf{\mu_2} = (\mu_{21}, \mu_{22})^T$, prove that the mean of the mixture with mixing parameter $\theta$ is a weighted sum of the component means:
+$$E \begin{pmatrix} X_1 \\ X_2 \end{pmatrix} = \begin{pmatrix} \theta \mu_{11} + (1 - \theta) \mu_{21} \\ \theta \mu_{12} + (1 - \theta) \mu_{22} \end{pmatrix}$$
+W ~ Bernoulli($\theta$)
+- W = 1 with probability $\theta$
+- W = 0 with probability $(1 - \theta)$
+X = WU + (1 - W)V
+
+E(X) = E(E(X|W)) --> law of total expectation
+E(X|W):
+If W = 1, E(X|W = 1) = E(U) = $\mu_1 = \begin{pmatrix} \mu_{11} \\ \mu_{12} \end{pmatrix}$
+If W = 2, E(X|W = 0) = E(V) = $\mu_2 = \begin{pmatrix} \mu_{21} \\ \mu_{22} \end{pmatrix}$
+
+Now, E(X) = E(X|W = 1) * P(W = 1) + E(X|W = 0) * P(W = 0),
+E(X) = $\mu_1 * \theta + \mu_2 * (1 - \theta) = \theta * \begin{pmatrix} \mu_{11} \\ \mu_{12} \end{pmatrix} + (1 - \theta) * \begin{pmatrix} \mu_{21} \\ \mu_{22} \end{pmatrix} = \begin{pmatrix} \theta{\mu_{11}} + (1 - \theta)\mu_{21}\\ \theta{\mu_{12}} + (1 - \theta)\mu_{22}\end{pmatrix}$
+
+E(X) = $(\theta\mu_{11} + (1 - \theta)\mu_{21}, \theta\mu_{12} + (1 - \theta)\mu_{22})^T$
+
+
+### Part (c) (2 points)
+
+Using your MVN generator from part (a), estimate the covariance matrix of $(X_1, X_2)$ using 10,000 samples. If you arrange your draws in a 10,000 by 2 matrix, you can use the `cov` function to estimate the covariance. 
+
+From your results, would you say that the covariance of a mixture can be expressed as the weighted average of the component covariances? In other words, does your estimated covariance matrix look like $0.6 \Sigma_U + 0.4 \Sigma_V$?
+
+```{r}
+set.seed(46)
+n <- 10000 # 10,000 samples
+mean_U <- c(0,0)
+mean_V <- c(2,2)
+
+cov_U <- matrix(c(2, -1.5, -1.5, 2), nrow = 2)
+cov_V <- matrix(c(1, 0.5, 0.5, 1), nrow = 2)
+
+cholesky_U <- chol(cov_U)
+cholesky_V <- chol(cov_V)
+
+x <- matrix(NA, nrow = n, ncol=2)
+
+for (i in 1:n) {
+  W <- rbinom(1, size=1, prob=0.6)
+  z <- rnorm(2)
+  
+  if(W == 1) {
+    x[i, ] <- mean_U + cholesky_U %*% z
+  } else {
+    x[i, ] <- mean_U + cholesky_V %*% z
+  }
+}
+
+
+cov_x <- cov(x)
+print(cov_x)
+
+theta <- 0.6
+mixture_cov <- theta * cov_U + (1 - theta) * cov_V
+cat(c("Weighted Average:", mixture_cov,"\n\n", "Estimated:", cov_x))
+
+# Based on the resulting matrices I would not say that the covariance of a 
+# mixture can be expressed as the weighted average of the component covariances. 
+# The estimated covariance does not resemble the weighted average. Though it's 
+# possible that with a larger sample size they may more closely resemble each 
+# other.
+```
+
+## Question 2 (5 points)
+
+Continuing our use of the Laplace distribution, we will use it as a candidate distribution for the standard Normal $N(0,1)$ distribution using an accept-reject algorithm.
+
+Recall that the probability distribution for a standard Normal is given by:
+
+$$f(x) = \frac{1}{\sqrt{2 \pi}} \exp\left\{ - \frac{x^2}{2} \right\}$$
+
+and the Laplace is given by
+$$g(x) = \frac{1}{2} \exp\left\{- |x| \right\}$$
+
+### Part (a) (2 pt)
+
+Analytically (i.e., pen and paper, not computation), find a constant $c$ such that:
+$$ \frac{c g(x)}{f(x)} \ge 1$$
+for all $x \in (-\infty, \infty)$. As we have frequently done, it may be helpful to consider $x < 0$ and $x \ge 0$ separately.
+
+$\frac{c g(x)}{f(x)} \ge 1, c g(x) \ge f(x)$
+
+$\frac{g(x)}{f(x)} = \frac{\frac{1}{2}e^{-|x|}}{\frac{1}{\sqrt{2\pi}}e^{-\frac{x^2}{2}}} = \frac{\sqrt{2\pi}}{2}e^{-|x| + \frac{x^2}{2}}$
+When x < 0:
+$\frac{g(x)}{f(x)} = \frac{\sqrt{2\pi}}{2}e^{x + \frac{x^2}{2}}$
+$c \geq \frac{f(x)}{g(x)} = \frac{2}{\sqrt{2\pi}}e^{x + \frac{x^2}{2}} = \frac{2}{\sqrt{2\pi}}e^{x + \frac{x^2}{2}}$
+As x approaches $-\infty, e^{x + \frac{x^2}{2}}$ approaches 0. At 0:
+
+$\frac{g(0)}{f(0)} =\frac{\frac{1}{2}e^0}{\frac{1}{\sqrt{2\pi}}e^0} = \frac{\sqrt{2\pi}}{2}, c \geq \frac{\sqrt{2\pi}}{2}$
+
+When x $\geq 0$:
+$\frac{g(x)}{f(x)} = \frac{\sqrt{2\pi}}{2}e^{-x + \frac{x^2}{2}}$
+$c \geq \frac{f(x)}{g(x)} = \frac{2}{\sqrt{2\pi}}e^{-|x| + \frac{x^2}{2}} = \frac{2}{\sqrt{2\pi}}e^{-x + \frac{x^2}{2}}$
+As x approaches $-\infty, e^{-x + \frac{x^2}{2}}$ approaches $\infty$.
+
+Let h(x) = $e^{-|x| + \frac{x^2}{2}}$
+To maximize h(x):
+$h'(x) = e^{-x + \frac{x^2}{2}}(\frac{x}{2} - 1) = 0$ Solving for $\frac{x}{2} - 1 = 0, x = 2$
+At x = 2:
+$h(2) = e^{-2 + \frac{2^2}{2}} = e^{-2 + 2} = 1$
+Maximum ratio of $\frac{g(x)}{f(x)} = \frac{\sqrt{2\pi}}{2}$ at x = 0
+$c = \frac{2}{\sqrt{2\pi}}$
+
+### Part (b) (3 pt)
+
+Implement an accept-reject algorithm for standard Normals using $c$ and our usual source of Laplace random variables.
+
+```{r}
+rlaplace <- function(n, theta = 0) {
+  s <- 2 * rbinom(n, size = 1, p = 0.5) - 1
+  m <- rexp(n) 
+  s * m + theta
+}
+
+c <- sqrt(2 * pi) / 2
+
+normal_density <- function(x) {
+  return((1/sqrt(2*pi)) * exp(-x^2 / 2))
+}
+
+laplace_density <- function(x) {
+  return((1/2) * exp(-abs(x)))
+}
+
+accept_reject <- function(n) {
+  samples <- numeric(n)
+  count <- 0
+  while(count < n) {
+    x <- rlaplace(n)
+    u <- runif(n)
+    accept <- u <= (normal_density(x) / (c * laplace_density(x)))
+    samples[count + (1:sum(accept))] <- x[accept]
+    count <- count + sum(accept)
+  }
+  return(samples[1:n])
+}
+```
+
+Using 1000 samples, verify that your Accept-Reject algorithm works using a QQ-plot (see `geom_qq`).
+
+```{r}
+n <- 1000
+samples <- accept_reject(n)
+
+df <- data.frame(samples = samples)
+ggplot(df, aes(sample = samples)) +
+  geom_qq(distribution = qnorm) +
+  geom_qq_line(distribution = qnorm) +
+  ggtitle("QQ-Plot: Samples vs. Standard Normal Distribution")
+```
+
+## Question 3 (5 points)
+
+### Part (a) (2 points)
+
+[Section 4.2 of *Statistical Computing in R*](https://ebookcentral-proquest-com.proxy.lib.umich.edu/lib/umichigan/detail.action?docID=5731927) discusses a well known stochastic process called **Brownian Motion**.
+
+Implement a function that will generate a Brownian Motion stochastic process with $k$ steps on the interval (0, 1) and $W(0) = 0$. Plot 100 realizations of this process with $k = 100$
+
+```{r}
+brownian_motion <- function(k, realizations) {
+  delta_t <- 1 / k
+  paths <- matrix(0, nrow = realizations, ncol = k + 1)
+  
+  for (i in 1:realizations) {
+    steps <- rnorm(k, mean = 0, sd = sqrt(delta_t))
+    paths[i, 2:(k + 1)] <- cumsum(steps)
+  }
+  return(paths)
+}
+
+k <- 100
+realizations <- 100
+paths <- brownian_motion(k, realizations)
+
+time_points <- seq(0,1, length.out = k + 1)
+brownian_realizations <- data.frame(
+  time = rep(time_points, realizations),
+  value = as.vector(t(paths)),
+  path = rep(1:realizations, each = k + 1)
+)
+
+ggplot(brownian_realizations, aes(x = time, y = value, group = path)) +
+  geom_line(alpha = 0.5) +
+  ggtitle("Brownian Motion: 100 Realizations, 100 Steps") +
+  xlab("Time") +
+  ylab("W(t)")
+```
+
+Using 1000 realizations of this process with $k = 100$, compute the variance at each time step. Plot this variance and answer the question, does the variance of $W(t)$ depend on $t$?
+
+```{r}
+k <- 100
+realizations <- 1000
+paths <- brownian_motion(k, realizations)
+
+vars <- apply(paths, 2, var)
+time_points <- seq(0,1,length.out = k + 1)
+variances <- data.frame(
+  time = time_points,
+  variance = vars
+)
+
+ggplot(variances, aes(x = time, y = vars)) +
+  geom_line() +
+  geom_abline(intercept = 0, slope = 1) +
+  ggtitle("Variance of Brownian Motion") +
+  xlab("Time (t)") +
+  ylab("Variance of W(t)")
+```
+
+### Part (b) (3 points)
+
+A variation of Brownian Motion is known as the [Brownian Bridge](https://en.wikipedia.org/wiki/Brownian_bridge). In the Brownian Bridge, both the starting value and ending value are the same $B(0) = B(T)$.
+
+Implement a Brownian Bridge stochastic process similar to your previous question. Use $k=100$ again and $B(0) = B(1) = 0$.
+
+As before, graph 100 realizations of the process. Then generate 1000 realizations and compute the variance at each time step. Plot the this variance as a function of the time step and answer the question, does the variance of $B(t)$ depend on $t$?
+
+```{r}
+brownian_bridge <- function(k, realizations) {
+  paths <- brownian_motion(k, realizations)
+  time_points <- seq(0, 1, length.out = k + 1)
+  
+  for (i in 1:realizations) {
+    paths[i, ] <- paths[i, ] - time_points * paths[i, k + 1]
+  }
+  return(paths)
+}
+  
+k <- 100
+realizations <- 100
+
+bridge_paths <- brownian_bridge(k, realizations)
+time_points <- seq(0,1, length.out = k + 1)
+brownian_bridge_data <- data.frame(
+  time = rep(time_points, realizations),
+  value = as.vector(t(bridge_paths)),
+  path = rep(1:realizations, each = k + 1)
+)
+
+ggplot(brownian_bridge_data, aes(x = time, y = value, group = path)) + geom_line(alpha = 0.5) +
+  ggtitle("Brownian Bridge: 100 Realizations, 100 Steps") +
+  xlab("Time") +
+  ylab("B(t)")
+
+realizations_variance <- 1000
+paths_variance <- brownian_bridge(k, realizations_variance)
+variance_brownian_bridge <- apply(paths_variance, 2, var)
+
+variance_brownian_bridge_data <- data.frame(
+  time = time_points,
+  variance = variance_brownian_bridge
+)
+
+ggplot(variance_brownian_bridge_data, aes(x = time, y = variance)) +
+  geom_line() +
+  ggtitle("Variance of Brownian Bridge") + 
+  xlab("Time (t)") +
+  ylab("Variance of B(t)") 
+```
+
+## Question 4 (4 pts)
+
+Please read Chapter 2 of "How to write a good scientific paper" by Chris Mack (the [full version](https://search.lib.umich.edu/catalog/record/99187409021506381) can be found via the University library). While this book is aimed at researchers trying to publish in scientific journals, the advice for framing our research projects and structuring the paper is applicable to undergraduate research as well.
+
+
+### Part (a) (2 pt)
+
+What does "IMRaD" stand for? For STATS 406, we are particularly interested in the operating characteristics of our statistical methods. Within the IMRaD format, where would you place a simulation study to estimate the bias of an estimator?
+
+The IMRaD format is the structure that most scientific papers follow. IMRaD is an acronym for Introduction, Method, Research and Discussion, Conclusions. Within the IMRaD format, we would place a simulation study to estimate the bias of an estimator in the method section as this section generally includes any experiment, theory, design, or model. In other words, how the results were generated.
+
+### Part (b) (2 pt)
+
+What does Mack see as "a common shortcoming of method sections?" Using tools already developed in STATS 406, what are some ways your can address this short coming in your own research paper?
+
+Mack identifies "the abandonment of the goal of reproducibility" as a common shortcoming in many recent scientific papers. He emphasizes the importance of a thorough method section that details why certain methods were chosen over others and includes all necessary details needed to reproduce the work. Using tools that we have addressed in STATS 406, we can avoid these pitfalls for the final project. We have developed multiple ways of producing random samples (Monte-Carlo Integration, Pseudorandom Number Generators, Inversion method) which allow for reproducibility. Additionally, because we're conducting computational analyses we're able to include code in our method and since we are using a publicly accessible data set the analysis could easily be recreated.
