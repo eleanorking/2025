@@ -4,6 +4,13 @@ Statistical concepts are increasingly integrated into Artificial Intelligence ap
 
 Projects:
 
-- Gradient Descent and Logistic Regression
+- Gradient Descent and Logistic Regression (numpy, pandas, matplotlib)
+- Mini Batch Gradient Descent (numpy, pandas, matplotlib)
+- Recurrent Neural Networks and Natural Language Processing (scikit-learn, keras, tensorflow, numpy, matplotlib)
+- Convolutional Neural Networks - Image Processing, Edge Detection, Blurring (scipy, numpy, matplotlib)
+- Two Layer Neural Network (numpy, tensorflow)
+- Regularization Methods (tensorflow, numpy, keras, matplotlib)
+- Convolutional Neural Network Modeling in Tensorflow (tensorflow, keras, matplotlib)
+- 
 
 Contact for access: elejking@umich.edu
