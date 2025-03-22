@@ -13,11 +13,11 @@
 
 - 📄 Resume: [King, Eleanor_CV](https://docs.google.com/document/d/1XmsDjvWBRQn6d7-mIMvRsherzMZCqa0UCaj2yeJUVus/edit?usp=sharing)
 
-- 📚 Previous courses (statistics): **Calculus I-III, Multivariate Calculus, Linear Algebra, Introductory Programming (C++, Python), Introductory Statistics, Applied Regression Analysis, Introduction to Probability Theory, Introduction to Theoretical Statistics, Introductory Statistical Computing, Statistics and Artificial Intelligence, Computational Methods in Statistics and Data Science**
+- 📚 **Previous courses (Statistics):** Calculus I-III, Multivariate Calculus, Linear Algebra, Introductory Programming (C++, Python), Introductory Statistics, Applied Regression Analysis, Introduction to Probability Theory, Introduction to Theoretical Statistics, Introductory Statistical Computing, Statistics and Artificial Intelligence, Computational Methods in Statistics and Data Science
 
-- 📚 Previous courses (economics): Principles of Microeconomics, Principles of Macroeconomics, Intermediate Microeconomic Theory, Intermediate Macroeconomic Theory, Environmental Economics, Game Theory and Business Strategy, Industrial Organization, Growth Theory
+- 📚 **Previous courses (Economics):** Principles of Microeconomics, Principles of Macroeconomics, Intermediate Microeconomic Theory, Intermediate Macroeconomic Theory, Environmental Economics, Game Theory and Business Strategy, Industrial Organization, Growth Theory
 
-- 📚 Previous courses (other): Critical Reasoning, Town and Country in Russian Writing, Introductory Anthropology, Undergraduate Research, Introduction to Environmental Science, Introduction to Ethics, Introduction to Piano
+- 📚 **Previous courses (other):** Critical Reasoning, Town and Country in Russian Writing, Introductory Anthropology, Undergraduate Research, Introduction to Environmental Science, Introduction to Ethics, Introduction to Piano
 
 <h3 align="left">Connect with me:</h3>
 <p align="left">
