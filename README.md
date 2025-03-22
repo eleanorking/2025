@@ -4,11 +4,11 @@
 
 - 🌱 I’m currently learning **Bayesian Data Analysis, Techniques in Survey Sampling, Advanced Data Modeling and Writing for Empirical Research**
 
-- 📝 My published work [https://doi.org/10.1111/jfr3.12974](https://doi.org/10.1111/jfr3.12974)
+- 📝 My published work: [https://doi.org/10.1111/jfr3.12974](https://doi.org/10.1111/jfr3.12974)
 
-- 📫 How to reach me **elejking@umich.edu**
+- 📫 How to reach me: **elejking@umich.edu**
 
-- 📄 Resume [https://docs.google.com/document/d/1XmsDjvWBRQn6d7-mIMvRsherzMZCqa0UCaj2yeJUVus/edit?usp=sharing](https://docs.google.com/document/d/1XmsDjvWBRQn6d7-mIMvRsherzMZCqa0UCaj2yeJUVus/edit?usp=sharing)
+- 📄 Resume: [https://docs.google.com/document/d/1XmsDjvWBRQn6d7-mIMvRsherzMZCqa0UCaj2yeJUVus/edit?usp=sharing](https://docs.google.com/document/d/1XmsDjvWBRQn6d7-mIMvRsherzMZCqa0UCaj2yeJUVus/edit?usp=sharing)
 
 <h3 align="left">Connect with me:</h3>
 <p align="left">
