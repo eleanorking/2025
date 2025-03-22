@@ -1,0 +1,217 @@
+---
+title: "HW 9"
+author: "Eleanor King, elejking"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+set.seed(29003021)
+library(tidyverse)
+```
+
+
+## Question (14 pts)
+
+Recall the Beta distribution, which is defined for $\theta \in (0, 1)$ with parameters $\alpha$ and $\beta$, has a density proportional to:
+$$\theta^{\alpha - 1} (1 - \theta)^{\beta - 1}$$
+
+The Dirichlet distribution generalizes the the Beta distribution for $k$ such $\theta_i$ values such that $\sum_{i=1}^k \theta_k = 1$. It has $k$ parameters, which we will label $\delta_i$ and is proportional to:
+$$\theta_1^{\delta_1 - 1} \theta_2^{\delta_2 - 1} \cdots \theta_k^{\delta_k - 1}$$
+
+In particular, let us consider the a Dirichlet distribution with three components, which we can also write as:
+$$\theta_1^{\delta_1 - 1} \theta_2^{\delta_2 - 1} (1 - \theta_1 - \theta_2)^{\delta_3 - 1}$$
+
+
+Suppose that $X_1$ counts the number observations of type 1, $X_2$ counts the numbers of observations of type 2, and $X_3$ counts the number of observations of type 3 in a sample (e.g., red, blue, and green cars observed on the highway). We will treat $n = X_1 + X_2 + X_3$ as fixed, so that our data have a **multinomial** distribution, which generalizes the binomial distribution. As with the binomial distribution, we can notice that $X_3 = n - X_1 - X_2$, and so is redundant. 
+
+The probability mass function for a multinomial distribution is proporational to
+$$f(x_1, x_2 \, |, \theta_1, \theta_2) \propto \theta_1^{x_1} \theta_2^{x_2} (1 - \theta_1 - \theta_2)^{n - x_1 - x_2}$$
+
+### Part (a) (4 pts)
+
+Consider the Bayesian model:
+\[
+\begin{aligned}
+ (\theta_1, \theta_2) &\sim \text{Dirichlet}(\delta_1, \delta_2, \delta_3)\\ 
+ (X_1, X_2) &\sim \text{Multinomial}(n, \theta_1, \theta_2)
+\end{aligned}
+\]
+
+Show that the posterior distribution $\pi(\theta_1, \theta_2 \, | \, x_1, x_2)$ has a Dirichlet distribution with parameters $(x_1 + \delta_1, x_2 + \delta_2, n - x_1 - x_2 + \delta_3)$. (Hint: find something that is proportional to the posterior distribution and argue that the only possible normalizing constant must lead to a Dirichlet distribution with the given parameters.)
+
+-------------------------------------------------------------------------------------------------------
+**Prior Distribution:**
+
+$(\theta_1, \theta_2)$ has a Dirichlet distribution with parameters $(\delta_1, \delta_2, \delta_3)$, it's density is proportional to $\pi(\theta_1, \theta_2) \propto \theta_1^{\delta_1-1}\theta_2^{\delta_2-1}(1 - \theta_1 - \theta_2)^{\delta_3 - 1}$
+
+
+**Likelihood Function:**
+
+Given $(x_1, x_2)$, likelihood under the multinomial model:
+
+$f(x_1, x_2 | \theta_1, \theta_2) \propto \theta_1^{x_1}\theta_2^{x_2}(1 - \theta_1 - \theta_2)^{n - x_1 - x_2}$, where $n = x_1 + x_2 + x_3$ is fixed.
+
+**Posterior Distribution:**
+
+$\pi(\theta_1, \theta_2 | x_1, x_2) \propto \pi(\theta_1, \theta_2) * f(x_1, x_2 | \theta_1, \theta_2)$
+
+Substituting in the prior distribution and the liklelihood:
+
+$\pi(\theta_1, \theta_2 | x_1, x_2) \propto  \theta_1^{\delta_1-1}\theta_2^{\delta_2-1}(1 - \theta_1 - \theta_2)^{\delta_3 - 1} * \theta_1^{x_1}\theta_2^{x_2}(1 - \theta_1 - \theta_2)^{n - x_1 - x_2}$
+
+Simplifying:
+
+$\pi(\theta_1, \theta_2 | x_1, x_2) \propto  \theta_1^{\delta_1-1+x_1}\theta_2^{\delta_2-1+x_2}(1 - \theta_1 - \theta_2)^{\delta_3 - 1+n-x_1-x_2}$
+
+This gives the same form as the Dirichlet distribution:
+
+Dirichlet($\alpha_1, \alpha_2, \alpha_3) \propto \theta_1^{\alpha_1 - 1} \theta_2^{\alpha_2 - 1} (1 - \theta_1 - \theta_2)^{\alpha_3 - 1}$
+
+Setting parameters equal:
+
+$\pi(\theta_1, \theta_2 | x_1, x_2) = \text{Dirichlet}(\delta_1 + x_1, \delta_2 + x_2, \delta_3 + n - x_1 - x_2)$
+
+
+
+-------------------------------------------------------------------------------------------------------
+
+### Part (b) (4 pts)
+
+Find the **full conditional posteriors** (up to a normalizing constant) for $\theta_1$ and $\theta_2$. Argue that
+$$\theta_1 \, | \, \theta_2, x_1, x_2  \sim (1 - \theta_2) \, \text{Beta}(x_1 + \delta_1, n - x_1 - x_2 + \delta_3)$$ 
+and
+$$\theta_2 \, | \, \theta_1, x_1, x_2 \sim (1 - \theta_1) \, \text{Beta}(x_2 + \delta_2, n - x_1 - x_2 + \delta_3)$$ 
+Hints:
+
+- If $X = a Y$, $a > 0$, and $Y$ has density $f(y)$, then $X$ has density $f(x / a) / a$
+- As we saw in class, be ruthless in dropping terms that don't pertain to the main parameter as long as you can maintain proportionality. E.g.
+$$f(x \, | \, y) \propto y!^y \frac{x y^2}{\sin(y)} \propto x$$
+- You may find it helpful to write $a_1 = x_1 + \delta_1$, $a_2 = x_2 + \delta_2$, and $b = n - x_1 - x_2 + \delta_3$ and do your proof using those as the parameters. 
+
+-------------------------------------------------------------------------------------------------------
+**Proof:**
+From part (a), 
+$\pi(\theta_1, \theta_2 | x_1, x_2) \propto  \theta_1^{\delta_1-1+x_1}\theta_2^{\delta_2-1+x_2}(1 - \theta_1 - \theta_2)^{\delta_3 - 1+n-x_1-x_2}$
+
+Let $a_1 = x_1 + \delta_1$, $a_2 = x_2 + \delta_2$, and $b = n - x_1 - x_2 + \delta_3$, so that:
+
+$\pi(\theta_1, \theta_2 | x_1, x_2) \propto  \theta_1^{a_1 - 1}\theta_2^{a_2 - 1}(1 - \theta_1 - \theta_2)^{b - 1}$
+
+**Conditional Posterior** (for $\theta_1\text{ given } \theta_2$):
+
+$\pi(\theta_1 | \theta_2, x_1, x_2) \propto \theta_1^{a_1 - 1}(1 - \theta_1 - \theta_2)^{b - 1}$
+Let Z = $1 - \theta_2$, so that $\theta_1$ is now defined ont he interval (0, Z). Use $\theta_1 = ZY$ where Y $\in (0, 1)$, meaning $\theta_1 = (1 - \theta_2)Y$
+So,
+$d\theta_1 = ZdY = (1 - \theta_2)dY$
+
+Substituting into the posterior distribution:
+$\pi(\theta_1 | \theta_2, x_1, x_2) \propto ((1 - \theta_2)Y)^{a_1 - 1}(1 - (1 - \theta_2)Y - \theta_2)^{b - 1}$
+
+Simplifying:
+$\pi(\theta_1 | \theta_2, x_1, x_2) \propto (1 - \theta_2)^{a_1 - 1}Y^{a_1 - 1}(1 - \theta_2)^{b - 1}(1 - Y)^{b - 1}$ 
+=
+$\pi(\theta_1 | \theta_2, x_1, x_2) \propto (1 - \theta_2)^{a_1 + b - 2}Y^{a_1 - 1}(1 - Y)^{b - 1}$ 
+
+$\pi(Y|\theta_2, x_1, x_2) \propto Y^{a_1 - 1}(1-Y)^{b - 1}$, thus Y ~ Beta($a_1, b$)
+So,
+$\theta_1 | \theta_2, x_1, x_2 \text{~} (1-\theta_2) * \text{Beta}(a_1, b) = (1 - \theta_2) * \text{Beta}(x_1 + \delta_1, n - x_1 - x_2 + \delta_3)$
+
+**Conditional Posterior** (for $\theta_2\text{ given } \theta_1$):
+
+$\pi(\theta_2 | \theta_1, x_1, x_2) \propto \theta_2^{a_2 - 1}(1 - \theta_1 - \theta_2)^{b - 1}$
+Let Z = $1 - \theta_1$, so that $\theta_2$ is now defined ont he interval (0, Z). Use $\theta_2 = ZY$ where Y $\in (0, 1)$, meaning $\theta_2 = (1 - \theta_1)Y$
+So,
+$d\theta_2 = ZdY = (1 - \theta_1)dY$
+
+Substituting into the posterior distribution:
+$\pi(\theta_2 | \theta_1, x_1, x_2) \propto ((1 - \theta_1)Y)^{a_2 - 1}(1 - \theta_1 -(1 - \theta_1)Y)^{b - 1}$
+
+Simplifying:
+$\pi(\theta_2 | \theta_1, x_1, x_2) \propto (1 - \theta_1)^{a_2 - 1}Y^{a_2 - 1}(1 - \theta_1)^{b - 1}(1 - Y)^{b - 1}$ 
+=
+$\pi(\theta_2 | \theta_1, x_1, x_2) \propto (1 - \theta_1)^{a_2 + b - 2}Y^{a_2 - 1}(1 - Y)^{b - 1}$ 
+
+$\pi(Y|\theta_1, x_1, x_2) \propto Y^{a_2 - 1}(1-Y)^{b - 1}$, thus Y ~ Beta($a_2, b$)
+So,
+$\theta_2 | \theta_1, x_1, x_2 \text{~} (1-\theta_1) * \text{Beta}(a_2, b) = (1 - \theta_1) * \text{Beta}(x_2 + \delta_2, n - x_1 - x_2 + \delta_3)$
+
+-------------------------------------------------------------------------------------------------------
+
+### Part (c) (6 pts)
+
+A poll by Morning Consult/Politico asked voters their opinion on whether the United States Congress should raise the federal minimum wage.
+
+```{r}
+x_1 <- 806 # Congress should raise to $15/hr
+x_2 <- 435 # Congress should not raise the minium wage
+x_3 <- 586 # Congress should raise to $11/hr
+n <- x_1 + x_2 + x_3
+```
+(I have excluded the 8% of the sample with no opinion)
+
+Modeling these results as multinomial, we will investigate the proportions of registered voters holding opinions about the federal minimum wage.
+
+Use the result from part (b) to implement a Gibbs sampler for $(\theta_1, \theta_2 \, \theta_3 | \, x_1, x_2)$. Let $\delta_1 = \delta_2 = \delta_3 = 1$.
+
+Create a chain of length 5000. Using the last 2000 iterations from the chain give estimates of $\theta_1$, $\theta_2$ and $\theta_3$. Also provide 95% credible intervals for each of the parameters (quantiles of the posterior marginal distributions).
+
+Estimate the probability that the \$15/hour wage is twice as popular as no increase at all (i.e., $P(\theta_1 / \theta_2 > 2)$).
+
+```{r}
+delta_1 <- 1
+delta_2 <- 1
+delta_3 <- 1
+iterations <- 5000
+burn_in <- 3000
+
+theta_1 <- numeric(iterations)
+theta_2 <- numeric(iterations)
+theta_3 <- numeric(iterations)
+
+theta_1[1] <- 0.3
+theta_2[1] <- 0.3
+theta_3[1] <- 1 - theta_1[1] - theta_2[1]
+
+for (t in 2:iterations) {
+  theta_1[t] <- (1 - theta_2[t - 1]) * rbeta(1, x_1 + delta_1, x_3 + delta_3)
+  theta_2[t] <- (1 - theta_1[t]) * rbeta(1, x_2 + delta_2, x_3 + delta_3)
+  theta_3[t] <- (1 - theta_1[t] - theta_2[t])
+}
+
+theta_1_samples <- theta_1[(burn_in + 1):iterations]
+theta_2_samples <- theta_2[(burn_in + 1):iterations]
+theta_3_samples <- theta_3[(burn_in + 1):iterations]
+
+theta_1_mean <- mean(theta_1_samples)
+theta_2_mean <- mean(theta_2_samples)
+theta_3_mean <- mean(theta_3_samples)
+
+theta_1_interval <- quantile(theta_1_samples, c(0.025, 0.975))
+theta_2_interval <- quantile(theta_2_samples, c(0.025, 0.975))
+theta_3_interval <- quantile(theta_3_samples, c(0.025, 0.975))
+
+probability <- mean(theta_1_samples / theta_2_samples > 2)
+
+cat("Posterior mean estimates:\n",
+"theta_1:", theta_1_mean, "\n",
+"theta_2:", theta_2_mean, "\n",
+"theta_3:", theta_3_mean, "\n",
+"95% Credible Intervals:\n",
+"theta_1:", theta_1_interval, "\n",
+"theta_2:", theta_2_interval, "\n",
+"theta_3:", theta_3_interval, "\n",
+"P(theta_1 / theta_2 > 2) = ", probability)
+```
+
+
+## Question 2 (6 pt)
+
+Read the paper "Less than 2 degree C warming by 2100 unlikely." Briefly summarize the results (question, data, analysis). Carefully, read the section "Methods: Model Estimation". Explain how they used their posterior distribution to generate the predictions they used in the paper. 
+
+
+In "Less than 2 degree C warming by 2100 unlikely", the authors use data from 1960 - 2010 in order to develop a  prediction of $CO_2$ emissions and temperature change by the year 2100. Using a Bayesian model for GDP and carbon intensity, they found that by 2100 the likely range of global temperature increase will be between 2.0 - 4.9 $^{\circ}$C. They warn that without a rapid decline in carbon dioxide levels, achieving a temperature increase of less than 1.5 $^{\circ}$C is unlikely. 
+
+In particular, the authors fit their model by using Markov Chain Monte Carlo (MCMC) techniques to approximate the posterior distribution of model parameters. For each simulation of a certain warming trajectory they randomly sampled a set of parameters from an iteration of the posterior distribution and then found residuals from the conditional distribution of each model. They then used the selected parameters and the sampled errors to predict future trajectories of GDP, carbon intensity, and population to come up with the likely range of temperature increase by 2100. 
