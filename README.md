@@ -3,7 +3,7 @@
 
 - 🌱 Current courses: **Bayesian Data Analysis (R Programming), Techniques in Survey Sampling (R Programming), Advanced Data Modeling and Writing for Empirical Research (R Programming)**
 
-- 🔭 I’m currently working on [Modeling Economic Productivity and Sectoral Influence](https://docs.google.com/document/d/1csZw1qjzshaKjXMfBazld7NBjHOd-_38_nIE9RikmhY/edit?tab=t.0#heading=h.b5q8ilk2zqt0)
+- 🔭 I’m currently working on [Modeling Economic Productivity and Sectoral Influence](file:///Users/eleanorking/Downloads/Copy%20of%20Eleanor%20King%20-%20Stats%20485%20V2%20paper%20template.pdf)
 
 - 👨‍💻 All of my projects are available at [https://github.com/eleanorking](https://github.com/eleanorking)
 
@@ -11,7 +11,7 @@
 
 - 📫 How to reach me: **elejking@umich.edu**
 
-- 📄 Resume: [King, Eleanor_CV](https://docs.google.com/document/d/1XmsDjvWBRQn6d7-mIMvRsherzMZCqa0UCaj2yeJUVus/edit?usp=sharing)
+- 📄 Resume: [King, Eleanor_CV](file:///Users/eleanorking/Downloads/King,%20Eleanor_CV%20(6).pdf)
 
 - 📚 **Previous courses (Statistics):** Calculus I-III, Multivariate Calculus, Linear Algebra, Introductory Programming (C++, Python), Introductory Statistics (R Programming), Applied Regression Analysis (R Programming), Introduction to Probability Theory, Introduction to Theoretical Statistics, Introductory Statistical Computing (R Programming, SQL), Statistics and Artificial Intelligence (Python), Computational Methods in Statistics and Data Science (R Programming)
 
