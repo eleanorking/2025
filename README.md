@@ -17,7 +17,7 @@
 
 - 📚 **Previous courses (Economics):** Principles of Microeconomics, Principles of Macroeconomics, Intermediate Microeconomic Theory, Intermediate Macroeconomic Theory, Environmental Economics, Game Theory and Business Strategy, Industrial Organization, Growth Theory
 
-- 📚 **Previous courses (other):** Critical Reasoning, Town and Country in Russian Writing, Introductory Anthropology, Undergraduate Research, Introduction to Environmental Science, Introduction to Ethics, Introduction to Piano
+- 📚 **Previous courses (Other):** Critical Reasoning, Town and Country in Russian Writing, Introductory Anthropology, Undergraduate Research, Introduction to Environmental Science, Introduction to Ethics, Introduction to Piano
 
 <h3 align="left">Connect with me:</h3>
 <p align="left">
