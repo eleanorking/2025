@@ -1,0 +1,345 @@
+---
+title: "HW05"
+author: "Eleanor King, elejking"
+output:
+  pdf_document: default
+  html_document: default
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+set.seed(394932)
+library(tidyverse)
+library(ggplot2)
+
+if (!require("lattice")) { 
+  install.packages("lattice", repos = "https://cloud.r-project.org")  
+}
+```
+
+## Problem 1 (2 pts)
+
+### Part (a) (1 pt)
+
+Here is the expression for a pseudorandom number generator that was used
+on a particular version of the VAX VMS operating system. It produces
+numbers between 0 and $2^{31} - 1$
+
+$$r(s) = \left( s \times (2^{16} + 3)\right) \mod 2^{31} $$
+
+This particular random number generator was notorious for producing poor
+quality of random numbers.
+
+Implement a version of this random number generator that returns a
+single value and then use that to return `n` random integers
+
+```{r}
+bad_rand_int <- function(seed) {
+  # Note: mod is "%%" in R
+  multiplier <- (2^16) + 3
+  modulus <- 2^31
+  return((seed * multiplier) %% modulus)
+}
+
+
+bad_rand_ints <- function(seed, n) {
+  seeds <- accumulate(1:n, ~ bad_rand_int(.x))
+  randoms <- map_dbl(seeds, ~bad_rand_int(.x))
+  return(randoms)
+}
+
+```
+
+Using your function `bad_rand_ints`, starting from a seed of 406
+generate 10 random values. Do you notice anything that would suggest
+these numbers are not uniformly random over the set 0 to $2^{31} - 1$?
+(Hint: think of classes of numbers you would expect to see in known
+proportions -- do you see these classes appearing correctly?)
+
+Now write a function that uses `bad_rand_ints` to produce a vector
+containing `n` psuedorandom $U(0,1)$ values.
+
+```{r}
+
+randoms <- bad_rand_ints(406, 10)
+randoms
+# These numbers all fall within the range from 0 to (2^31) - 1, but there 
+# appears to be some clustering towards higher values, indicating that the 
+# distribution might not be uniform. 
+
+bad_rand_u <- function(seed, n) {
+  randoms <- bad_rand_ints(seed, n)
+  random_u <- randoms / (2^31)
+  return(random_u)
+}
+```
+
+Draw 10,000 random numbers and make a Q-Q plot compared to the uniform
+distribution.
+
+```{r}
+# create QQ plot
+u_values <- bad_rand_u(406, 10000)
+
+ggplot(data.frame(x = u_values), aes(sample = x)) + geom_qq() + geom_qq_line()
+```
+
+### Part (b) (1 pt)
+
+While a sequence of PRNGs might look OK when viewed *marginally*,
+viewing the sequences as points in a space can be useful to detect
+non-random patterns.
+
+When you are ready, the following code will produce a plot when called
+on your collection of 10,000 $U(0,1)$ random numbers from the previous
+part. What pattern do you see?
+
+```{r}
+plot_bad_rands <- function(prngs) {
+  if (length(prngs) %% 10 != 0) {
+    stop("We must have random numbers in a multiple of 10")
+  }
+  # group the random numbers into groups of 10, but only use the first 3 in each group
+  m <- matrix(prngs, ncol = 10, byrow = TRUE)[, 1:3]
+  
+  # label the columns 
+  colnames(m) <- c("X", "Y", "Z")
+  
+  cloud(Z ~ X + Y, as.data.frame(round(m, 3)), pch = 20, cex = 0.1)
+}
+
+plot_bad_rands(u_values) 
+# The data appears to cluster along lines on one half of the distribution 
+# and appears more random on the other half of the distribution.
+```
+
+## Problem 2 (6 pts)
+
+Recall the exponential distribution with mean $\theta^{-1}$ has density:
+$$f(x) = \theta e^{- \theta x}$$
+
+### Part (a) (2 pt)
+
+Find the quantile function of an exponential with rate parameter
+$\theta$.
+
+CDF: $F(X) =\int^x_01-e^{-\theta x}dt = 1 - e^{-\theta x}$
+Let F(X) = p, then $p = 1 - e^{-\theta x}$
+$e^{-\theta x} = 1 - p$
+$e-\theta x = \ln(1 - p)$
+$x = -\frac{1}{\theta}\ln(1 - p)$
+Thus, Q(p) = $-\frac{1}{\theta}\ln(1 - p)$
+
+
+### Part (b) (2 pt)
+
+You may recall that the mean and standard deviation of
+$\text{Exp}(\theta)$ is $\mu = \sigma = 1/\theta$. But what is the skew?
+$$\gamma = \text{E}\left[\left(\frac{X - \mu}{\sigma}\right)^3\right]$$
+Use the quantile function from (a) to sample 10,000 exponential random
+variables with rate parameter 2. Estimate $\gamma$ and provide a 99.9%
+confidence interval.
+
+```{r}
+quantile <- function(p, theta) {
+  return (-1/theta * log(1 - p))
+}
+
+set.seed(123)
+theta <- 2
+n <- 10000
+samples <- quantile(runif(n), theta)
+
+mu <- 1 / theta
+sigma <- 1 / theta
+skew <- mean(((samples - mu) / sigma)^3)
+skew
+
+se_skew <- sqrt(6 / n)
+z_val <- qnorm(1 - 0.001/2)
+lower_bound <- skew - z_val * se_skew
+upper_bound <- skew + z_val * se_skew
+cat(lower_bound, upper_bound)
+```
+
+### Part (c) (2 pts)
+
+Use your results from (a) to prove that if $U \sim U(0, 1)$ then,
+$$- \frac{1}{\theta} \log(U) \sim \text{Exp}(\theta), \theta > 0$$
+(Where $\log$ is the natural logarithm as always in this class.)
+
+CDF of U: $F_U(u) = P(U \leq u) = u, 0 \leq u \leq 1$
+PDF of U: $f_U(u) = 1, 0 \leq u \leq 1$
+Let X = $-\frac{1}{\theta}log(U)$
+Then, $F_X(x) = P(X \leq x) = P(-\frac{1}{\theta}\log(U) \leq x)$
+Solving for U: $-\frac{1}{\theta}\log(U)\leq x, -\theta x \leq \log(U), e^{-\theta x} \leq U$
+CDF: $F_X(x) = P(U \geq e^{-\theta x}) = 1 - e^{-\theta x}$
+PDF: $f_X(x) = \frac{d}{dx}F_X(x) = \frac{d}{dx}(1 - e^{-\theta x}) = \theta e^{-\theta x}$
+Therefore, X = $-\frac{1}{\theta}\log(U) ~ \text{Exp}(\theta)$
+## Problem 3 (8 pts)
+
+The standard Normal distribution:
+$$f(x) = \frac{1}{\sqrt{2\pi}} \exp\{ -x^2/2 \}$$ does not have a closed
+form quantile function, so it would be difficult to apply the inversion
+method. Instead, we can use a transformation method that still only uses
+$U(0,1)$ random variables.
+
+### Part (a) (2 pt)
+
+Consider two **independent** standard Normal variables $X$ and $Y$. We
+can think of these as points on a Cartesian plane:
+
+```{r}
+xy <- ggplot(data.frame(x = rnorm(50), y = rnorm(50)), aes(x = x, y = y)) + geom_point()
+print(xy)
+```
+
+We could also think about these points using **polar coordinates** based
+on a radius (distance from the origin) $R = \sqrt{X^2 + Y^2}$ and angle
+(from 0 to $2\pi$) such that $\cos(A) = X / R$ and $\sin(A) = Y / R$:
+
+```{r}
+xy + geom_segment(aes(xend = 0, yend = 0))
+```
+
+What is $R^2$? [Use this list of common
+relationships](https://en.wikipedia.org/wiki/Relationships_among_probability_distributions)
+to express $R^2$ as an **exponential random variable** (since
+exponentials can be parameterized using **rate** or **mean**, use the
+rate parameterization $W \sim \text{Exp}(\theta)$, $E(X) = 1/\theta$).
+
+$R = \sqrt{X^2 + Y^2}, R^2 = X^2 + Y^2$
+Chi- squared Distribution: $X^2 \text{~} \chi^2(1), Y^2 \text{~} \chi^2(1)$
+So, $R^2 = X^2 + Y^2 \text{~} \chi^2(2)$
+A chi-squared distribution with 2 degrees of freedom is equal to an exponential distribution with a rate parameter $\theta = \frac{1}{2}$
+$W \text{~} \text{Exp}(\theta)$
+$E(W) = \frac{1}{\theta}, E(R^2) = 2$
+$R^2 \text{~ Exp}(\frac{1}{2})$
+
+### Part (b) (2 pt)
+
+Show that the joint distribution for two independent standard Normal
+random variables is proportional to the joint distribution for a
+$A \sim U(0, 2\pi)$ and the $R^2$ you found in (a), where $A$ and $R^2$
+are independent.
+
+Joint distribution of X and Y:
+$f_{X,Y}(x,y) = f_X(x)*f_Y(y)$
+$f_X(x) = \frac{1}{\sqrt{2\pi}}e^{-\frac{x^2}{2}}, f_Y(y) = \frac{1}{\sqrt{2\pi}}e^{-\frac{y^2}{2}}$
+
+$f_{X,Y}(x,y) = (\frac{1}{\sqrt{2\pi}}e^{-\frac{x^2}{2}})(\frac{1}{\sqrt{2\pi}}e^{-\frac{y^2}{2}}) = \frac{1}{2\pi}e^{-\frac{x^2 + y^2}{2}}$
+
+A distribution:
+$f_A(a) = \frac{1}{2\pi}, 0 \leq a \leq 2\pi$
+
+$R^2$ distribution:
+$f_{R^2}(r^2) = 2e^{-\frac{r^2}{2}}, r^2 \geq 0$
+
+Joint Distribution:
+$f_{A, R^2}(a, r^2) = f_A(a) * f_{R^2}(r^2) = (\frac{1}{2\pi})*(2e^{-\frac{r^2}{2}}) = \frac{1}{\pi}e^{-\frac{r^2}{2}}$
+
+Joint Dist of X and Y: $\frac{1}{2\pi}e^{-\frac{x^2 + y^2}{2}}$
+Joint Dist of A and $R^2$: $\frac{1}{\pi}e^{-\frac{r^2}{2}}$
+Letting $r^2 = x^2 + y^2$, we have $f_{X,Y}(x,y) = \frac{1}{2\pi}e^{-\frac{r^2}{2}}$
+Thus the two distributions are proportional.
+
+### Part (c) (2 pt)
+
+Use the result from 3(c) that
+$-(1/\theta) \log(U) \sim \text{Exp}(\theta)$ along with the identity
+$X = R \cos(A)$ to show how to generate one standard Normal random
+variable from two independent $U(0,1)$ random variables. (Interesting
+note, you can also use $Y = R \sin(A)$ to get a second standard Normal,
+which is also independent, but this is not necessary to show.)
+
+Let $U_1$ and $U_2$ be the two independent random variables and let 
+$A = 2\pi U_1$
+From before, $R^2 \text{~ Exp}(\theta), R^2 = -2\log(U_2), R = \sqrt{-2\log(U_2)}$
+Now using $X = R \cos(A), X = R \cos(A) = \sqrt{-2\log(U_2)} \cos(2\pi U_1)$
+
+### Part (d) (2 pt)
+
+Implement your part (c) in R. Demonstrate your results using a
+quantile-quantile plot (replacing `rnorm` with your solution.)
+
+```{r}
+standard_norm <- function() {
+  U_1 <- runif(1)
+  U_2 <- runif(1)
+  A <- 2 * pi * U_1
+  R <- sqrt(-2 * log(U_2))
+  X <- R * cos(A)
+  
+  return(X)
+}
+
+n <- 10000
+samples <- replicate(n, standard_norm())
+ggplot(data.frame(x = samples), aes(sample = x)) + geom_qq() + geom_qq_line()
+```
+
+## Problem 4 (4 pt)
+
+### Part (a) (2 points)
+
+In class we proved that the inversion method works in the continuous
+case. Prove that it works in the discrete case as well. Two useful
+facts:
+
+-   For any discrete on any domain, there is is a one-to-one mapping
+    from that domain to the integers (or a subset of the integers). So
+    without loss of generality, we can assume all discrete RVs have the
+    integers as their support.
+-   Let the discrete random variable $X$ be defined on the set $\Omega$.
+    If $P(X = x) = P(Y = x)$ for all $x \in \Omega$, then $X$ and $Y$
+    have the same distribution.
+
+CDF of X: $F(x) = P(X \leq x) = \sum_{x_j \leq x}P(X = x_j)$
+Let $F(x_1) = p_1, F(x_2) = p_1 + p_2, F(x_k) = p_1 + p_2 + ... + p_k = 1$
+Using the one-to-one mapping fact, If $U \leq F(x_1)$, then $X = x_1$
+More generally, $F(x_{k-1}) \leq U \leq F(x_k)$, then $X = x_k$
+
+Y will have the same PMF as X:
+$P(Y = x_i) = P(U \in [F(x_{_i-1}), F(x_i)] = F(x_i) - F(x_{i-1}) = p_i$ for i = 1,2,...,k
+
+$P(X = x) = P(Y = x)$ for all $x \in \Omega$
+
+
+### Part (b) (2 points)
+
+Use the inversion method to generate draws from the Poisson distribution
+with probability mass function:
+
+$$p(x) = \frac{\lambda^x e^{-\lambda}}{x!}$$
+
+where $x = 0, 1, 2, \ldots$ and $\lambda > 0$ is the rate parameter. Let
+$\lambda = 2$. Do not use `rpois` or `qpois` to generate the Poisson
+random variables. Demonstrate the results using a QQ-plot (you can use
+`qois` as the reference distribution).
+
+```{r}
+lambda <- 2
+
+poisson <- function(lambda) {
+  U <- runif(1)
+  F <- 0
+  x <- 0
+  p <- exp(-lambda)
+  
+  while (F + p < U) {
+    F <- F + p
+    x <- x + 1
+    p <- p * (lambda / x)
+  }
+  return(x)
+}
+
+n <- 10000
+samples <- replicate(n, poisson(lambda))
+theoretical_quantiles <- qpois(ppoints(n), lambda)
+
+ggplot(data.frame(sample = samples, theoretical = theoretical_quantiles), aes(sample = sample)) + geom_qq() + geom_qq_line()
+```
