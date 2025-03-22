@@ -25,10 +25,11 @@
 </p>
 
 <h3 align="left">Professional Experience:</h3>
-<p align="left">Data Analytics @ 
-<a href="https://www.barrys.com/" target="_blank">
-</a>
-</p>
+
+- Data Analyst Intern @ [Barry's Bootcamp](https://www.barrys.com/)
+- Congressional Intern @ [U.S. House of Representatives](https://debbiedingell.house.gov/)
+- Research Assistant @ [University of Michigan School of Public Health](https://sph.umich.edu/)
+- Underwriter Intern @ [AmeriSave Mortgage Corporation](https://www.amerisave.com/?campaignid=21638354533&adgroupid=166489383797&creative=711098161136&utmcampaign=brand&gclid=Cj0KCQjwv_m-BhC4ARIsAIqNeBsabNrnwdFsplUz6oiQaQZFTvoZFAU4iFmfhb-1SqH0Fxg68ClW9psaAr1nEALw_wcB&gad_source=1)
 
   
 <h3 align="left">Languages and Tools:</h3>
