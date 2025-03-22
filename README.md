@@ -25,9 +25,8 @@
 </p>
 
 <h3 align="left">Professional Experience:</h3>
-<p align="left">
+<p align="left">Data Analytics @ 
 <a href="https://www.barrys.com/" target="_blank">
-    <img align="center" src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Barry%27s_Logo.svg/512px-Barry%27s_Logo.svg.png" alt="Barry's Bootcamp" height="30" width="80" />
 </a>
 </p>
 
