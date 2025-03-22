@@ -1,0 +1,232 @@
+---
+title: "HW10"
+author: "Eleanor King, elejking"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+set.seed(998112)
+```
+
+
+## Question 1 (8 pts)
+
+Let's investigate some time series data. Here are 12 years worth of S&P500 data (a composite index of 500 of the most capitalized stocks; it is often used as a proxy for the state of the entire United States stock market).
+
+```{r}
+load("spy.rda") # loads SPY table
+ggplot(SPY, aes(x = Date, y = Close)) + geom_line() # "Index" is the date
+```
+
+In particular, we will work with the daily (end of trading) returns
+
+```{r}
+SPY <- mutate(SPY,  Return = c(NA, Return = diff(Close)) / Close)[-1, ] # drop the NA one
+ggplot(SPY, aes(x = Date, y = Return)) + geom_line()
+```
+
+### Part (a) (2 pt)
+
+The Nadaraya-Watson estimator has the form:
+
+  $$\hat \mu(x) = \frac{\sum_{i = 1}^n K\left(\frac{X_i - x}{h} \right) Y_i} {\sum_{i = 1}^n K\left(\frac{X_i - x}{h}\right)}$$
+
+Find the limit of this expression for any fixed $x$, when $h \rightarrow \infty$.
+
+---------------------------------------------------------------------------------
+As $h \rightarrow \infty$ , $\left(\frac{X_i - x}{h} \right)$ approaches 0. So,
+
+Numerator:
+
+${\sum_{i = 1}^n K\left(\frac{X_i - x}{h} \right) Y_i} \approx \sum_{i = 1}^nK(0)Y_i = K(0)\sum_{i = 1}^nY_i$
+
+Denominator:
+
+
+${\sum_{i = 1}^n K\left(\frac{X_i - x}{h} \right) } \approx \sum_{i = 1}^nK(0) = K(0)n$
+
+So,
+
+$\hat \mu(x) \approx \frac{K(0) \sum_{i = 1}^nY_i}{K(0)n} = \frac{1}{n}\sum_{i = 1}^nY_i$
+
+$\lim_{h\to\infty}\hat \mu(x) = \frac{1}{n}\sum_{i = 1}^nY_i$ for any fixed $x$
+
+---------------------------------------------------------------------------------
+
+### Part (b) (4 pt)
+
+We will use the `ksmooth` function with a **"normal" kernel** to fit an estimator of $\mu(x)$ for this time series. Here, we will use the index of the observations as the predictor:
+```{r}
+SPY <- mutate(SPY, idx = 1:nrow(SPY))
+```
+
+Use Leave-one-out Cross Validation to pick an appropriate bandwidth parameter for the `ksmooth` function to create the smoothed estimator using mean squared error as the loss function. You will notice something strange about the "best" value. What is this value telling you about the best possible estimator? 
+
+---------------------------------------------------------------------------------
+```{r}
+
+```
+
+
+---------------------------------------------------------------------------------
+
+
+
+
+The efficient market hypothesis (EMH) states that markets incorporate all information in the stock price, and fluctuations are the result of unpredictable random shocks. One implication of the EMH is that the relative returns should have a mean of zero. Plot your smoothing estimator. Does it agree with the EMH?
+
+```{r}
+
+```
+
+### Part (c) (2 pt)
+
+Even if the mean is zero, looking at the plot we notice that there are several "bursty" regions that appear to have wider variation than others. 
+
+If we suppose that the efficient market hypothesis is true (i.e., $\mu(x) = 0$), then we can use a smoothed estimator to estimate $\text{Var}(Y \mid x) = E(Y^2 \mid x) = \mu_2(x)$. By squaring the relative changes, compute a smoothed **conditional variance** estimator. Pick a bandwidth using LOOCV. Plot this estimator over the range of `idx`. Can you identify any periods where variance seemed to change drastically?
+
+```{r}
+
+
+
+```
+
+## Question 2 (6 points)
+
+### Part (a) (2 point)
+
+Read sections 1 to 3.1, and 4 to 4.1 of "Environmental Kuznets Curve Hypothesis: A Survey" (of course, you may read more, but these sections contain the most relevant information for this week's homework). Briefly summarize the idea of the **Environmental Kuznets Curve** (EKC). Specifically, what kind of relationship does it posit between economic development (say GDP per capita) and environmental impact (for example CO$_2$ per capita emission)?
+
+---------------------------------------------------------------------------------
+
+The Environmental Kuznets Curve (EKT) is the relationship between income change and environmental quality. The curve is an inverted U shape, illustrating that in early stage economic development, environmental quality worsens and in later stage economic development, environmental quality improves. In other words, as when GDP per capita is relatively small and growing, CO$_2$ per capita emission is growing and when GDP per capita is large, CO$_2$ per capita emission decreases.
+
+---------------------------------------------------------------------------------
+
+### Part (b) (4 points)
+
+```{r}
+load("world_bank.rda") 
+
+str(world_bank)
+```
+
+Section 4.1 of the EKC paper includes a specification for a model that relates country income to CO2. In both cases, it makes sense to normalize by dividing by the total populatnion to make both GDP and CO2 *per capita*.
+
+For our purposes, we will fix a single observation per country ($t = 1$ for all observations) and not include any other predictors (labeled $z$ in the model).
+
+Fit an OLS model using the specification given in equation (1) one on page 440. Using the `summary` function, interpret the hypothesis tests for each parameter. Interpret your results using the listing of possible outcomes given on pages 440 and 441. Do you think there is evidence to support the EKC theory? Can we rule out the EKC theory?
+
+---------------------------------------------------------------------------------
+```{r}
+world_bank_1 <- world_bank %>%
+  group_by(Country) %>%
+  filter(row_number() == 1) %>%
+  ungroup()
+
+OLS_model <- lm(CO2 ~ GDP + I(GDP^2) + I(GDP^3) + Population, data = world_bank_1)
+
+summary(OLS_model)
+
+```
+
+As the EKC paper states, the only possible outcome that supports the EKC theory is outcome (iv) in which $\beta_1 > 0, \beta_2 < 0, \text{and }\beta_3 = 0$.
+
+From the summary of the model we see that $\beta_1 < 0$, $\beta_2 > 0$, and $\beta_3 < 0$. We can also see that the p-values for the $\beta$ estimates are all less than 0.05, indicating statistical significance. Consequently, we have relationship (vii) $\beta_1 < 0$, $\beta_2 > 0$, and $\beta_3 < 0$, an opposite to the cubic polynomial/N-shaped figure from relationship (vi). This suggests that there is not evidence to support the EKC as an inverted U-shaped curve. However, relationship (vi) still suggests that as GDP per capita starts to rise, environmental impact increases and as GDP per capita continues to rise, environmental impact decreases. It introduces a further relationship in that after the initial rise and fall in environmental impact, and as GDP per capita continues to grow, environmental impact increases again.
+
+---------------------------------------------------------------------------------
+
+
+
+## Question 3 (6 pts)
+
+### Part a (2 points)
+
+Read the paper, "Do Shark Attacks Influence Presidential Elections? Reassessing a Prominent Finding on Voter Competence." (Before you ask: yes, this is a real paper published in an important political science journal. While somewhat lighthearted, the paper addresses an important political behavior question.) Briefly summarize the authors research question and methods. How did the authors use a simulation to help understand the statistical properties of a hypothesis test?
+
+---------------------------------------------------------------------------------
+In "Do Shark Attacks Influence Presidential Elections? Reassessing a Prominent Finding on Voter Competence" by Anthony Fowler and Andrew B. Hall, the authors seek to reassess the claim that shark attacks have an influence on presidential elections. In order to determine the validity of Achen and Bartel's claim, Fowler and Hall first replicated the original 2001 study. They then used multivariate regression models to analyze the relationship between shark attacks and presidential election results by state. Additionally, in order to help the reader understand the statistical properties of a hypothesis test, they used a simulation in which they randomly shuffled the data to create multiple simulated datasets, then re-fit the regression models, and compared how often they found type 1 error. 
+---------------------------------------------------------------------------------
+
+### Part b (2 points)
+
+The authors note that one reason that standard errors in a regression model can be wrong is due to correlation in the error terms. We will illustrate this with two simulations. If we suppose that the error terms are Normally distributed, then we can generate the vector of error terms using the `mvrnorm` function in the mass library. Here is an illustration
+
+```{r}
+library(MASS)
+set.seed(1203203)
+n <- 100
+x <- runif(n)
+
+S_corr <- matrix(0.25, n, n)
+diag(S_corr) <- 1
+
+beta_0 <- 1
+beta_1 <- 2
+
+y <- beta_0 + beta_1 * x + mvrnorm(1, mu = rep(0, n), Sigma = S_corr)
+
+ggplot(data.frame(x, y), aes(x = x, y = y)) + geom_point()
+```
+
+Using the `S_corr` matrix and 1000 replications, generate data sets and using the `lm` function to estimate $\hat \beta_1$. Graph this distribution and compute the standard distribution (the standard error of the $\hat \beta_1$ statistic). Repeat using independent standard Normals as the error term.
+
+---------------------------------------------------------------------------------
+```{r}
+
+```
+
+
+---------------------------------------------------------------------------------
+Compare this to these standard errors for these data if they were independent: 
+
+```{r}
+tmp <- model.matrix(~ x)
+xxinv <- solve(t(tmp) %*% tmp)
+ind_se <- sqrt(xxinv["x", "x"])
+ind_se
+```
+
+---------------------------------------------------------------------------------
+The standard errors are quite close.
+
+---------------------------------------------------------------------------------
+
+### Part c (2 points)
+
+We can correct for correlation in the error terms if the correlation structure is known. Let $V$ be the known correlation structure. [Generalized least squares](https://en.wikipedia.org/wiki/Generalized_least_squares) solves the following variation of the least squares problem:
+
+$$\min_\beta (y - X\beta)^T V^{-1} (y - X \beta)$$
+which is just the regular OLS with the inverse covariance sandwiched in the middle.
+
+As it turns out, you can factor $$V^{-1} = CC^T$$, for example using a Cholesky decomposition, and preprocess $y$ and $X$ as $\tilde y = C y$ and $\tilde X = C X$ and then perform regular OLS.
+
+```{r}
+V_inv <- solve(S_corr)
+C <- chol(V_inv) |> t()
+
+xx <- model.matrix(~ x)
+
+y2 <- C %*% y
+xx2 <- C %*% xx
+solve(t(xx2) %*% xx2, t(xx2) %*% y)
+```
+
+And the standard error would then be:
+
+```{r}
+xx2_inv <- solve(t(xx2) %*% xx2)
+sqrt(xx2_inv["x", "x"])
+```
+
+
+Repeat the simulation using the correlated error terms, but this time use generalized least squares. Show that it is unbiased for $\beta_1$ and gets the standard error matches the value calculated in the previous code block.
+
+---------------------------------------------------------------------------------
+```{r}
+
+```
+
+---------------------------------------------------------------------------------
