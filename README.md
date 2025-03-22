@@ -1,7 +1,7 @@
 <h1 align="center">Hi 👋, I'm Eleanor King</h1>
 <h3 align="center">University of Michigan, Major: Statistics Minor: Economics (May 2025 Graduation)</h3>
 
-- 🌱 Current courses: **Bayesian Data Analysis, Techniques in Survey Sampling, Advanced Data Modeling and Writing for Empirical Research**
+- 🌱 Current courses: **Bayesian Data Analysis (R Programming), Techniques in Survey Sampling (R Programming), Advanced Data Modeling and Writing for Empirical Research (R Programming)**
 
 - 🔭 I’m currently working on [Modeling Economic Productivity and Sectoral Influence](https://docs.google.com/document/d/1csZw1qjzshaKjXMfBazld7NBjHOd-_38_nIE9RikmhY/edit?tab=t.0#heading=h.b5q8ilk2zqt0)
 
@@ -13,7 +13,7 @@
 
 - 📄 Resume: [King, Eleanor_CV](https://docs.google.com/document/d/1XmsDjvWBRQn6d7-mIMvRsherzMZCqa0UCaj2yeJUVus/edit?usp=sharing)
 
-- 📚 **Previous courses (Statistics):** Calculus I-III, Multivariate Calculus, Linear Algebra, Introductory Programming (C++, Python), Introductory Statistics, Applied Regression Analysis, Introduction to Probability Theory, Introduction to Theoretical Statistics, Introductory Statistical Computing, Statistics and Artificial Intelligence, Computational Methods in Statistics and Data Science
+- 📚 **Previous courses (Statistics):** Calculus I-III, Multivariate Calculus, Linear Algebra, Introductory Programming (C++, Python), Introductory Statistics, Applied Regression Analysis, Introduction to Probability Theory, Introduction to Theoretical Statistics, Introductory Statistical Computing (R Programming), Statistics and Artificial Intelligence (Python), Computational Methods in Statistics and Data Science (R Programming)
 
 - 📚 **Previous courses (Economics):** Principles of Microeconomics, Principles of Macroeconomics, Intermediate Microeconomic Theory, Intermediate Macroeconomic Theory, Environmental Economics, Game Theory and Business Strategy, Industrial Organization, Growth Theory
 
