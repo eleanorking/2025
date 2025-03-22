@@ -3,7 +3,7 @@
 
 - 🌱 Current courses: **Bayesian Data Analysis (R Programming), Techniques in Survey Sampling (R Programming), Advanced Data Modeling and Writing for Empirical Research (R Programming)**
 
-- 🔭 I’m currently working on [Modeling Economic Productivity and Sectoral Influence](https://acrobat.adobe.com/id/urn:aaid:sc:US:da4f8d2b-dae8-4464-b880-cf3e3b895445)
+- 🔭 I’m currently working on [Modeling Economic Productivity and Sectoral Influence]([https://acrobat.adobe.com/id/urn:aaid:sc:US:da4f8d2b-dae8-4464-b880-cf3e3b895445](https://acrobat.adobe.com/id/urn:aaid:sc:US:2900948b-f87a-40cc-b681-25253e2c368f))
 
 - 👩‍💻 All of my projects are available at [https://github.com/eleanorking](https://github.com/eleanorking)
 
