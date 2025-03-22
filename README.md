@@ -2,6 +2,14 @@
 <h1 align="center">Hi 👋, I'm Eleanor King</h1>
 <h3 align="center">Passionate about data</h3>
 
+- 🌱 I’m currently learning **Bayesian Data Analysis, Techniques in Survey Sampling, Advanced Data Modeling and Writing for Empirical Research**
+
+- 📝 My published work [https://doi.org/10.1111/jfr3.12974](https://doi.org/10.1111/jfr3.12974)
+
+- 📫 How to reach me **elejking@umich.edu**
+
+- 📄 Know about my experiences [https://docs.google.com/document/d/1XmsDjvWBRQn6d7-mIMvRsherzMZCqa0UCaj2yeJUVus/edit?usp=sharing](https://docs.google.com/document/d/1XmsDjvWBRQn6d7-mIMvRsherzMZCqa0UCaj2yeJUVus/edit?usp=sharing)
+
 <h3 align="left">Connect with me:</h3>
 <p align="left">
 <a href="https://linkedin.com/in/https://www.linkedin.com/in/eleanor-king-667b06210/" target="blank"><img align="center" src="https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/linked-in-alt.svg" alt="https://www.linkedin.com/in/eleanor-king-667b06210/" height="30" width="40" /></a>
