@@ -1,0 +1,252 @@
+---
+title: "STATS 485 - Paper 2 Appendix"
+author: "Eleanor King"
+date: "2025-02-24"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+# GMP and Population Size
+
+Overview of goals of computations to follow: 
+
+1. Detail the statistical models and assumptions necessary for understanding and form hypotheses relating to the influence of variables other than population on per-capita GMP
+
+2. Perform a preliminary exploration of the data set and introduce new variables necessary for evaluating hypotheses. 
+
+3. Create a model to demonstrate the supra-linear relationship between GMP and population size. 
+
+4. Introduce alternatives to the previously specified model that address the hypotheses formed at the outset of the appendix. 
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(caret)
+
+
+msadata <- read_csv('http://dept.stat.lsa.umich.edu/~bbh/s485/data/gmp-2006-all.csv')
+
+# Addressing missing data
+msa_small = msadata |> dplyr::select(MSA:pop) |> na.omit()
+
+# With missing data
+msadata |> complete.cases() |> table()
+# Without missing data
+msa_small |> complete.cases() |> table()
+
+# Addressing the error 'In pop * pcgmp : NAs produced by integer overflow'
+#msa_small$pop <- as.double(msa_small$pop)
+```
+
+
+### Appendix I: Detail of Statistical Models
+
+
+$$\text{If } Y \approx cN^b, \text{ for some } c > 0, b > 1, \text{then } \log(Y/N) 
+\approx \beta_0 + \beta_1\log(N) \text{ for some } \beta_0 \in (-\infty, \infty),
+\beta_1 > 0$$
+
+$$\text{ Additionally, } \log(Y) \approx \beta_0 + (1 + \beta_1)\log(N)$$
+
+##### Hypothesis I: Influence of the Finance Sector 
+          
+    Larger metropolitan areas tend to have a higher concentration of financial 
+    firms. Because the careers in the financial sector are positively correlated 
+    with wage, cities with a greater share of their economy in finance might 
+    exhibit higher per capita GMP. Thus, if not properly taken into account, a 
+    regression could falsely attribute this effect to population size 
+    contributing to supra-linear scaling (Brookings). 
+
+##### Hypothesis II: Influence of the ICT sector
+
+    The information, communication, and technology (ICT) sector thrives in 
+    metropolitan areas in part because larger cities attract highly skilled 
+    professionals who are crucial for the ICT sector. If the ICT industry share 
+    is positively correlated with per capita GMP, but not properly accounted 
+    for in the regresion model, the coefficient on population size may absorb 
+    some of this effect contributing to supra-linear scaling (Nature).
+
+### Appendix II: Exploratory Analyses
+
+```{r}
+# Overall GMP
+msa_small <- msadata |> 
+  mutate(GMP = pcgmp * pop) |>
+# Interaction term for finance and population
+  mutate(finance_pop = finance * pop) |>
+# Interaction term for ICT and population
+  mutate(ict_pop = ict * pop)
+
+# GMP vs. Population Size
+ggplot(msa_small, aes(x = pop, y = GMP)) +
+  geom_point() + 
+  geom_smooth(formula = 'y ~ x', method = "loess", se = FALSE) +
+  ggtitle("GMP vs. Population Size")
+
+# Log(GMP) vs. Population Size
+ggplot(msa_small, aes(x = pop, y = log(GMP))) +
+  geom_point() + 
+  geom_smooth(formula = 'y ~ x', method = "loess", se = FALSE) +
+  ggtitle("Log(GMP) vs. Population Size")
+
+# GMP vs. Log(Population Size)
+ggplot(msa_small, aes(x = log(pop), y = GMP)) +
+  geom_point() + 
+  geom_smooth(formula = 'y ~ x', method = "loess", se = FALSE) +
+  ggtitle("GMP vs. Log(Population Size)")
+
+# Log(GMP) vs. Log(Population Size)
+ggplot(msa_small, aes(x = log(pop), y = log(GMP))) +
+  geom_point() + 
+  geom_smooth(formula = 'y ~ x', method = "loess", se = FALSE) +
+  ggtitle("Log(GMP) vs. Log(Population Size)")
+
+```
+
+The log GMP vs. log population size is the better scale for capturing patterns in the data using a regression model of relatively simple structure. 
+
+```{r}
+# By Finance Sector Strength
+plot1 <- ggplot(msa_small, aes(x = log(pop), y = log(GMP), color = finance)) +
+  geom_point(alpha = 0.8, size = 3) +
+  scale_color_gradient(low = "blue", high = "red") +
+  labs(title = "Log(GMP) vs. Log(Pop) - Finance Influence",
+       x = "Log(pop)",
+       y = "Log(GMP)",
+       color = "Finance Share")
+
+plot1
+
+# By ICT Strength
+plot2 <- ggplot(msa_small, aes(x = log(pop), y = log(GMP), color = ict)) +
+  geom_point(alpha = 0.8, size = 3) +
+  scale_color_gradient(low = "green", high = "purple") +
+  labs(title = "Log(GMP) vs. Log(Pop) - ICT Influence",
+       x = "Log(pop)",
+       y = "Log(GMP)",
+       color = "ICT Share")
+
+plot2
+```
+
+### Appendix III: Fitting the Power Law Model
+
+```{r}
+model <- lm(log(GMP) ~ log(pop), data = msa_small)
+summary(model)
+```
+The slope for log(pop) is greater than 1 suggesting supra-linear scaling
+
+```{r}
+# Regression plot
+ggplot(msa_small, aes(x = log(pop), y = log(GMP))) +
+  geom_point(alpha = 0.7, color = "blue") +
+  geom_smooth(method = "lm", color = "red", se = FALSE) +
+  labs(title = "Log(GMP) Regression on Log(Population",
+       x = "Log(Population)",
+       y = "Log(GMP)") + 
+  theme_minimal()
+
+# Residuals vs. Fitted Values
+plot(model$fitted.values, residuals(model),
+     xlab = "Fitted Values (Log(GMP))",
+     ylab = "Residuals",
+     main = "Residuals vs. Fitted Values") ; abline(h = 0)
+```
+The residual plot shows an amorphous blob indicating that the we can assume homoskedasticity.
+
+```{r}
+model_base10 <- lm(log10(GMP) ~ log10(pop), data = msa_small)
+
+residuals <- residuals(model)
+in_sample_loss <- sum(residuals^2)
+
+in_sample_loss
+```
+
+### Appendix IV: Fitting and Assessment of Alternate Models
+
+```{r}
+# Overall GMP vs. Finance Sector Share and ICT Sector Share
+model_finance <- lm(log(GMP) ~ finance + ict, data = msa_small)
+summary(model_finance)
+
+# Overall GMP vs. Finance Share and ICT Share Interactions with Population
+model_interactions <- lm(log(GMP) ~ finance_pop + ict_pop, data = msa_small)
+summary(model_interactions)
+```
+
+```{r}
+# Proportions of Non-Missing Values
+prop_non_missing <- msa_small |>
+  summarize(
+    prop_finance = mean(!is.na(finance)),
+    prop_ict = mean(!is.na(ict)),
+    prop_finance_pop = mean(!is.na(finance_pop)),
+    prop_ict_pop = mean(!is.na(ict_pop))
+  )
+
+print(prop_non_missing)
+
+# Proportion of Complete Observations
+prop_complete <- mean(complete.cases(msa_small |> 
+                                       select(pcgmp, pop, finance, ict, finance_pop, ict_pop)))
+
+print(prop_complete)
+
+# Data Set of Necessary Variables
+msa_clean <- msa_small |> 
+  select(GMP, pop, finance, ict, finance_pop, ict_pop) |>
+  na.omit()
+
+# Adding Log Transformed Variables Explicitly
+msa_clean <- msa_clean |>
+  mutate(log_GMP = log(GMP),
+         log_pop = log(pop),
+         log_finance_pop = log(finance_pop),
+         log_ict_pop = log(ict_pop))
+
+# Squared Error Loss Function
+squared_error_loss <- function(model, data) {
+  preds <- predict(model, newdata = data)
+  loss <- sum((preds - log(data$GMP))^2)
+  return(loss)
+}
+
+# Models Using Cleaned Data
+model_1 <- lm(log_GMP ~ log_pop, data = msa_clean)
+alt_model_1 <- lm(log_GMP ~ log_finance_pop + log_pop, data = msa_clean)
+alt_model_2 <- lm(log_GMP ~ log_ict_pop + log_pop, data = msa_clean)
+alt_model_3 <- lm(log_GMP ~ log_finance_pop + log_ict_pop + log_pop, data = msa_clean)
+
+# Evaluating Performance
+loss_model_1 <- squared_error_loss(model_1, msa_clean)
+loss_alt_1 <- squared_error_loss(alt_model_1, msa_clean)
+loss_alt_2 <- squared_error_loss(alt_model_2, msa_clean)
+loss_alt_3 <- squared_error_loss(alt_model_3, msa_clean)
+
+print(loss_model_1)
+print(loss_alt_1)
+print(loss_alt_2)
+print(loss_alt_3)
+
+```
+
+### Appendix V: Additional calculations for paper version 2
+
+```{r}
+# Cross Validation
+train_control <- trainControl(method = "cv", number = 10)
+
+model_1 <- train(log_GMP ~ log_pop, data = msa_clean, method = "lm", trControl = train_control)
+alt_model_1 <- train(log_GMP ~ log_finance_pop + log_pop, data = msa_clean, method = "lm", trControl = train_control)
+alt_model_2 <- train(log_GMP ~ log_ict_pop + log_pop, data = msa_clean, method = "lm", trControl = train_control)
+alt_model_3 <- train(log_GMP ~ log_finance_pop + log_ict_pop + log_pop, data = msa_clean, method = "lm", trControl = train_control)
+
+errors <- data.frame(model_1$results$RMSE, alt_model_1$results$RMSE, alt_model_2$results$RMSE, alt_model_3$results$RMSE)
+
+print(errors)
+```
