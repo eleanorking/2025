@@ -1,0 +1,436 @@
+---
+title: "HW11"
+author: "Eleanor King, elejking"
+date: "Due 2024-12-10 at 9pm"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(ggplot2)
+set.seed(32902223)
+```
+
+## Question 1 (6 points)
+
+In the following, we will be considering the Poisson distribution, which is defined on non-negative integers:
+$$P(Y = y) \frac{e^{-\lambda} \lambda^y}{y!}, \quad \lambda > 0, y = 0,1,2, \ldots$$
+
+### Part (a) (2 point)
+
+Show that the Poisson distribution is a member of the exponential family by finding parameters $\theta$ and $\psi$, and functions $a$, $b$, and $c$, such that
+$$P(Y = y) = \exp\left( \frac{y \theta - b(\theta)}{a(\psi)} + c(y, \psi) \right)$$
+
+Find the mean of the Poisson distribution by finding $b'(\theta)$ in terms of $\lambda$.
+
+What is the canonical link function?
+
+$$P(Y = y) = \exp(-\lambda + y\text{ln}(\lambda) - \text{ln}(y!))$$
+$$P(Y = y) = \exp(y\theta - e^\theta - \text{ln}(y!))$$
+$$E[Y] = b'(\theta) = e^\theta = \lambda$$
+So the canonical link function is $$g(\mu) = \text{ln}(\mu)$$
+
+
+
+### Part (b) (2 points)
+
+Using a simulation approach, we will investigate the **bias** of $\hat \beta_1$ when modeling $E(Y \mid \mathbf{x}^T \beta)$ as given in part (a). We will keep $\beta_0$ fixed in the simulation, and vary the true $\beta_1$ parameter.
+
+```{r}
+beta_0 <- 4
+beta_1s <- seq(-1, 1, length.out = 20)
+n <- 100
+x <- runif(n, 2, 10)
+```
+
+For each value of `beta_1s`,
+
+1. Compute $\mu_i = G^{-1}(\beta_0 + \beta_1 x_i)$, where $G^{-1}$ is the inverse cannonical link function from part (a).
+2. 1000 times, repeat the following:
+    a. Draw new $y$ values using `rpois` with the mean equal to $\mu_i$ (ie., a different mean for each of the 100 observations) 
+    b. Fit a GLM using the `glm` function with `family = poisson()`
+    c. Store `coef(mod)[2]`
+3. Create a provide a 99% confidence interval for the bias.
+
+Plot these CIs with respect to $\beta_1$. What can you say about the bias properties of MLEs?
+
+```{r}
+set.seed(321)
+
+beta_0 <- 4
+beta_1 <- seq(-1, 1, length.out = 20)
+n <- 100
+x <- runif(n, 2, 10)
+num_simulations <- 1000
+
+results <- matrix(NA, nrow = num_simulations, ncol = length(beta_1s))
+
+for (i in 1:length(beta_1s)) {
+  beta_1 <- beta_1s[i]
+  
+  for (j in 1:num_simulations) {
+    mu <- exp(beta_0 + beta_1 * x)
+    y <- rpois(n, mu)
+    mod <- glm(y ~ x, family = poisson())
+    results[j, i] <- coef(mod)[2]
+  }
+}
+
+bias <- apply(results, 2, mean) - beta_1s
+lower_ci <- apply(results, 2, function(x) quantile(x, 0.005))
+upper_ci <- apply(results, 2, function(x) quantile(x, 0.995))
+
+plot(beta_1s, bias, type = 'b' , pch = 19, col = 'blue', xlab = 'True beta 1', ylab = 'Bias of beta_1', main = 'Bias of MLE for Poisson GLM') +
+ segments(beta_1s, lower_ci, beta_1s, upper_ci, col = "red", lwd = 2) +
+  abline(h = 0, col = 'black', lty = 2)
+
+
+
+
+```
+
+### Part (c) (2 point)
+
+The following data contain the estimated population of all 50 US states and the District of Columbia as well as reported COVID cases from the start of the pandemic to 2020-04-13.
+
+```{r}
+load("us_covid.rda")
+ggplot(us_pop_covid, aes(x = Population, y = CovidCases)) + geom_point()
+```
+
+Fit a Poisson GLM to these data with CovidCases being the outcome and Population/100000 as the predictor. Give an estimate of the expected number of cases for a state with population of 100,000,000.
+
+```{r}
+
+us_pop_covid$PopScaled <- us_pop_covid$Population / 100000
+glm_fit <- glm(CovidCases ~ PopScaled, data = us_pop_covid, family = poisson())
+
+summary(glm_fit)
+
+predicted_cases <- predict(glm_fit, newdata = data.frame(PopScaled = 100000000 / 100000), type = "response")
+
+# Expected number of cases for a state with a population of 100,000,000
+predicted_cases
+```
+
+## Question 2 (8 pts)
+
+The [generalized Gaussian distribution (GDD)](https://en.wikipedia.org/wiki/Generalized_normal_distribution) takes similarities we've seen the Gaussian/Normal distribution and the Laplace/Double Exponential distribution and generalizes them into a class of distributions given by:
+$$f(y; \mu, \alpha, \theta) = \frac{\theta}{2\alpha\Gamma(1/\theta)} \exp\left\{ -\frac{\left|y - \mu\right|^\theta}{\alpha^{\theta}}  \right\} $$
+where $\Gamma(z)$ is the [Gamma function](https://en.wikipedia.org/wiki/Gamma_function), which generalizes the idea of factorial for non-integer numbers.
+
+We can see that when $\theta = 1$, the distribution is the same as the Laplace/Double Exponential distribution we've seen in class and on homeworks previously. When $\theta = 2$, the result is the Gaussian/Normal distribution (with  $\alpha = \sigma$).
+
+Of course, we're not limited to just those two values, we could consider any number of possible distributions:
+
+```{r, echo = FALSE}
+plot(NULL, xlim = c(-3, 3), ylim = c(0, 0.55), xlab = "x", ylab = "f(x)")
+thetas <- c(0.25, 0.5, 0.75, 1, 1.5, 2, 3, 4)
+cols <- rainbow(length(thetas))
+for (i in seq_along(thetas)) {
+  theta <- thetas[i]
+  curve((theta / (2 * gamma(1/theta))) * 
+          exp(- (abs(x)^theta)), 
+        add = TRUE, col = cols[i])
+}
+legend("topleft", fill = cols, legend = round(thetas ,3)) 
+```
+
+In the following questions, we'll assume that $\theta$ is known. We've previously proved that $E(Y) = \mu$ for both the Normal and Laplace case, and we'll use (without proof) that this fact holds for any GDD. As we'll show in the next problem, we don't need to know $\alpha$ to estimate $\mu$ (again, a familiar fact for the Normal case.)
+
+
+### Part (a) (2 pt)
+
+Suppose we want to model the **conditional mean** of some observations $Y_i$ as 
+$E(Y \mid \mathbf{x}) = \mathbf{x}^T \beta$ and $Y \mid \mathbf{x}$ is thought come from a generalized Gaussian distribution with known $\theta$ parameter.
+
+Show that we can minimize the loss function:
+$$h(\beta) = \sum_{i=1}^n \left|y_i - \mathbf{x_i}^T\beta \right|^\theta$$
+in order to get **maximum likelihood estimates** for the $\beta$ parameters.
+
+---------------------------------------------------------------------
+$$f(y; \mu, \alpha, \theta) = \frac{\theta}{2\mu\Gamma(1/\theta)}\text{exp}(-\frac{|y - \mu|^\theta}{\alpha^\theta})$$
+$$L(\beta) = \Pi_{i=1}^nf(y_i;x_i^T\beta, \alpha, \theta)$$
+$$L(\beta) = \Pi_{i=1}^n\frac{\theta}{2\alpha\Gamma(1/\theta)}\text{exp}(-\frac{|y_i - x_i^T\beta|^\theta}{\alpha^\theta})$$
+$$\text{log}L(\beta) = \sum_{i = 1}^n[\text{log}(\frac{\theta}{2\alpha\Gamma(1/\theta)}) - \frac{|y_i - x_i^T\beta|^\theta}{\alpha^\theta}]$$
+
+$$= \sum_{i = 1}^n[\text{log}\theta - \text{log}2 - \text{log}\alpha - \text{log}\Gamma(1/\theta) - \frac{|y_i - x_i^T\beta|^\alpha}{\alpha^\beta}]$$
+$$\text{log}L(\beta) \propto - \sum_{i = 1}^n\frac{|y_i - x_i^T\beta|^\theta}{\alpha^\theta}$$
+Minimizing $$|y_i - x_i^T\beta|^\theta$$ will give the maximum likelihood estimate for the parameter vector.
+
+---------------------------------------------------------------------
+
+### Part (b) (4 points)
+
+For a vector $\mathbf{v}$ of length $k$, a function of the form 
+$$L(\mathbf{v}; p) = \left(\sum_{i=1}^k \left| v_i \right|^p \right)^{1/p}$$
+is known as the $L_p$-norm of the vector. For example, $L_2$ results in the standard Euclidean distance from the origin.
+
+Writing $\mathbf{v} = \mathbf{v} - \mathbf{X} \beta$, we can see that the maximum likelihood estimates for $\beta$ for the generalized Gaussian distribution family can be found by minimizing the associated $L_\theta$ norm (since the the norm is positive, the $1/\theta$ power does change the minimizer).
+
+We saw that Iteratively (re)Weighted Least Squares (IWLS) can be used to find MLEs for exponential dispersion families. It can also be used to [minimize $L_p$ norms](https://en.wikipedia.org/wiki/Iteratively_reweighted_least_squares#Lp_norm_linear_regression).
+
+Clearly, if $\theta = 2$, a single application of OLS will result in ML estimates. For other $\theta$, at each step we will perform a weighted linear regression where the outcome will always be $\mathbf{y}$ and the weights at step $t$, will be:
+$$w_i^{(t)} = \left| y_i - \mathbf{x_i}^T \beta \right|^{\theta - 2}$$
+
+Let us simulate data that are conditionally distributed GGD with $\theta = 1$
+```{r}
+set.seed(34094983)
+n <- 100
+x1 <- runif(n, -1, 1)
+x2 <- rexp(n, 1/3)
+X <- cbind(x0 = 1, x1, x2)
+beta <- c(0.5, -1, 0.5)
+mu <- as.vector(X %*% beta)
+y <- mu + (-1)^rbinom(n, size = 1, prob = 0.5) * rexp(n, 1)
+```
+
+Implement an IWLS solver to compute the maximum likelihood estimates using $y$ and $\mathbf{x}$. Demonstrate your results by showing a plot demonstrating convergence of your estimated $\beta$ parameters.
+
+Additional details:
+
+- When $\theta = 1$, the weights will be reciprocals of $|y_i - \mathbf{x_i}^T\beta|$ and can be very close to zero, which becomes numerically unstable. Use the following safer weights:
+$$w_i^{(t)} = \frac{1}{\max(0.0001, |y_i - \mathbf{x_i}^T\beta |)}$$
+Be aware the the `max` function returns a single value, while `pmax` will compare two vectors (or a vector and a scalar) and return the pairwise minimum for each component.
+- The `matplot` function will plot a line for each row of a matrix.
+- Your result should converge in fewer than 20 iterations
+- We will use this optimization routine in the next problem, so you may wish to make it a function that takes data arguments and returns matrix of estimates at each step of the algorithm.
+
+```{r}
+set.seed(321)
+
+n <- 100
+x1 <- runif(n, -1, 1)
+x2 <- rexp(n, 1/3)
+X <- cbind(x0 = 1, x1, x2)
+beta <- c(0.5, -1, 0.5)
+mu <- as.vector(X %*% beta)
+y <- mu + (-1)^rbinom(n, size = 1, prob = 0.5) * rexp(n, 1)
+
+IWLS <- function(X, y, max_iter = 20, tol = 1e-6) {
+  n <- nrow(X)
+  p <- ncol(X)
+  
+  beta_est <- rep(0, p)
+  beta_history <- matrix(NA, nrow = max_iter, ncol = p)
+  
+  for (iter in 1:max_iter) {
+    eta <- X %*% beta_est
+    residuals <- abs(y - eta)
+    weights <- 1 / pmax(0.0001, residuals)
+    W <- diag(weights)
+    beta_new <- solve(t(X) %*% W %*% X) %*% (t(X) %*% W %*% y)
+    beta_history[iter, ] <- beta_new
+    
+    if (max(abs(beta_new - beta_est)) < tol) {
+      beta_history <- beta_history[1:iter, ]
+      break
+    }
+    beta_est <- beta_new
+  }
+  return(beta_history)
+}
+
+beta_estimates <- IWLS(X, y)
+
+matplot(1:nrow(beta_estimates), beta_estimates, type = "l", col = 1:3, lty = 1, xlab = "Iteration", ylab = "Beta Estimate",  main = "Convergence of Beta Estimtes")
+
+
+```
+
+
+
+### Part (c) (2 pts)
+
+So far, we've motivated this problem as finding maximum likelihood estimates for a particular distribution, but we can also view it as finding line through that minimizes **absolute deviations** (the so called, **least absolute deviation fit** or **LAD**). This form of regression is also sometimes called **median** regression because it models the **conditional median** of $y$ given $\mathbf{x}$ as a linear function of the predictors.
+
+We'll apply both linear regression and median regression to two data sets (four fits in all). The first data set comes from the standard linear regression assumptions. The second data set takes the same data and replaces the right-most $y$ value with one that is three times as large. The following code and plot illustrate this process.
+```{r}
+set.seed(34094983)
+n <- 20
+x1 <- runif(n, -1, 1)
+X <- cbind(x0 = 1, x1)
+beta <- c(0.5, 1.2)
+med <- as.vector(X %*% beta)
+
+y1 <- med + rnorm(n, mean = med, sd = .5)
+## find the farthest right point and move it up
+biggest <- which.max(x1)
+y2 <- y1
+y2[biggest] <- y2[biggest] * 3
+```
+
+```{r, echo = FALSE}
+plot(x1, y1, ylim = range(y2))
+points(c(x1[biggest], x1[biggest]), c(y1[biggest], y2[biggest]), col = c('red'), cex = 2, pch = 20)
+arrows(x0 = x1[biggest], x1 = x1[biggest], y0 = y1[biggest], y1 = y2[biggest], col = 'red', lty = 3)
+```
+
+Fit an OLS regression of the two outcomes ($y_1$, $y_2$) on $x_1$. Also perform LAD regression (using your code from the previous problem). Show the coefficients. What happened when an observation was replaced? In the .Rmd file there is also a `plot_lines` function that you can use to show the different fits visually.
+
+Comment on situations in which you might want to use LAD instead of OLS.
+
+```{r, echo = FALSE}
+plot_lines <- function(ols1, lad1, ols2, lad2) {
+  plot(x1, y1, ylim = range(y2))
+  points(c(x1[biggest], x1[biggest]), c(y1[biggest], y2[biggest]), col = 'red', cex = 2, pch = 20)
+  segments(x0 = x1[biggest], x1 = x1[biggest], y0 = y1[biggest], y1 = y2[biggest], col = 'red', lty = 2)
+  abline(a = ols1[1], b = ols1[2], col = "orange")
+  abline(a = lad1[1], b = lad1[2], col = "orange", lty = 2)
+  abline(a = ols2[1], b = ols2[2], col = "blue")
+  abline(a = lad2[1], b = lad2[2], col = "blue", lty = 2)
+  legend("topleft", 
+         col = c("orange", "orange", "blue", "blue"),
+         lty = c(1, 2, 1, 2),
+         legend = c("OLS, 1", "LAD, 1", "OLS, 2", "LAD, 2"))
+}
+```
+
+
+```{r}
+set.seed(406)
+
+n <- 20
+x1 <- runif(n, -1, 1)
+X <- cbind(x0 = 1, x1)
+beta <- c(0.5, 1.2)
+med <- as.vector(X %*% beta)
+
+y1 <- med + rnorm(n, mean = med, sd = .5)
+
+biggest <- which.max(x1)
+y2 <- y1
+y2[biggest] <- y2[biggest] * 3
+
+iwls_solver <- function(X, y, max_iter = 20, tol = 1e-6) {
+  n <- length(y)
+  k <- ncol(X)
+  beta <- rep(0, k)
+  beta_history <- matrix(NA, nrow = max_iter, ncol = k)
+  
+  for (iter in 1:max_iter) {
+    residuals <- y - X %*% beta
+    weights <- 1 / pmax(0.0001, abs(residuals))
+    
+    W <- diag(weights)
+    XtW <- t(X) %*% W
+    XtWX <- XtW %*% X
+    XtWy <- XtW %*% y
+    beta_new <- solve(XtWX, XtWy)
+    
+    beta_history[iter, ] <- beta_new
+    if (sum(abs(beta_new - beta)) < tol) {
+      beta_history <- beta_history[1:iter, ,drop = FALSE]
+      break
+    }
+    
+    beta <- beta_new
+  }
+  
+  return(beta_history)
+}
+
+ols1 <- lm(y1 ~ x1)$coefficients
+ols2 <- lm(y2 ~ x1)$coefficients
+lad1 <- iwls_solver(X, y1) [nrow(iwls_solver(X, y1)), ]
+lad2 <- iwls_solver(X, y2) [nrow(iwls_solver(X, y2)), ]
+
+cat("OLS Coef for y1:", ols1)
+cat("LAD Coef for y1:", lad1)
+cat("OLS Coef for y2:", ols2)
+cat("LAD Coef for y2:", lad2)
+
+plot_lines(ols1, lad1, ols2, lad2)
+
+
+```
+LAD is preferable when outliers are present. It is less sensitive to outliers than OLS because OLS squares the residuals, giving them more weight/leverage. Additionally, LAD does not assume a normal distribution for the residuals, so it is useful when residuals are non-normal.
+
+
+## Question 3 (6 points)
+
+### Part (a) (2 points)
+
+Read the paper, "Clustering of countries according to the COVID-19 incidence and mortality rates" by Gohari et al. Briefly summarize the main findings of this research with an emphasis on how the authors used clustering to understand the data.
+
+-----------------------------------------------------------------------------------------------------
+In "Clustering of countries according to the COVID-19 incidence and mortality rates", Gohari et al find that countries around the world can be clustered based on patterns of COVID-19 infection and mortality rates. They found that certain regions experienced similar COVID-19 dynamics and can be grouped into one of the following clusters: (1) high incidence, high mortality, (2) high incidence, low mortality, (3) low incidence, low mortality, (4) low incidence, high mortality. Additionally, they identified several factors that contributed to a given country falling into a certain cluster. For example, a country with a good healthcare system was more likely to fall into the low mortality, high incidence cluster, whereas a country with a poor healthcare system would fall into a high mortality cluster. Similar conclusions were made based on the rate of testing, demographic factors, and public health policy. By using clustering, Gohari et al introduced a better way of understanding COVID-19 patterns. Because there is so much variability between regions, clustering allows us to tailor public health policy by location and improve health outcomes for future pandemics. 
+
+-----------------------------------------------------------------------------------------------------
+
+
+### Part  (4 points)
+
+Here are data from the WHO COVID dashboard, referenced in the paper.
+
+```{r}
+who <- read_csv("WHO-COVID-19-global-data.csv") |> select(-Cumulative_cases, -Cumulative_deaths) 
+
+ggplot(who, aes(x = `Date_reported`, y = `New_cases`, group = Country_code)) + geom_line()
+
+```
+You will note that there is big spike on one particular date. This is from the data released by China:
+
+```{r}
+who |> filter(Country_code == "CN") |>
+  ggplot(aes(x = `Date_reported`, y = `New_cases`)) + geom_line()
+
+```
+Given this strangeness, we will remove China from the data set.
+```{r}
+who_clean <- who |> filter(Country_code != "CN")
+ggplot(who_clean, aes(x = `Date_reported`, y = `New_cases`, group = Country_code)) + geom_line()
+```
+
+As with the paper, we will expanded the data into variables representing weekly reporting for all countries:
+
+```{r}
+
+who_weekly <- who_clean |>
+  pivot_wider(id_cols = c("Country_code", "Country", "WHO_region"),
+              names_from = "Date_reported",
+              values_from = c("New_cases", "New_deaths"),
+              values_fill = 0) 
+
+
+```
+
+The `who_weekly` data set contains the number of new cases and deaths for each country in the WHO data set used in the paper. Using PCA and k-means clustering, cluster the countries into 3 groups based on the number of new cases and deaths (you may choose how many principal component dimensions you use). Plot the first two principal components and color the points by cluster. Using the clusters, plot the number of new cases over time (as above), but use a facet wrap to separate out the groups. Comment on the results: do these clusters seem useful for organizing countries by their patterns of new cases?
+
+
+```{r}
+case_data <- who_weekly %>%
+  select(starts_with("New_cases"), starts_with("New_deaths"))
+
+case_data_clean <- case_data %>% drop_na()
+
+column_variances <- apply(case_data_clean, 2, var)
+non_zero_var_columns <- which(column_variances != 0)
+
+case_data_clean_non_zero <- case_data_clean[, non_zero_var_columns]
+case_data_normalized <- case_data_clean_non_zero %>% 
+  mutate(across(everything(), ~ (. - mean(., na.rm = TRUE)) / sd(., na.rm = TRUE)))
+
+pca_result <- prcomp(case_data_normalized, center = TRUE, scale. = TRUE)
+
+pca_data <- data.frame(pca_result$x)
+
+
+set.seed(123)
+kmeans_res <- kmeans(pca_data[, 1:2], centers = 3, nstart = 25)
+pca_data$Cluster <- factor(kmeans_res$cluster)
+
+
+ggplot(pca_data, aes(x = PC1, y = PC2, color = (kmeans_res$cluster))) + 
+  geom_point() + 
+  labs(title = "PCA of New COVID-19 Cases and Deaths",
+       x = "Principal Component 1",
+       y = "Principal Component 2") +
+  theme_minimal()
+
+
+
+```
+
+The clusters appear to be quite separate, indicating that it is helpful to separate analysis by region given how different the outcomes are by region. 
