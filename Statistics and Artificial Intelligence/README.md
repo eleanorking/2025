@@ -4,6 +4,6 @@ Statistical concepts are increasingly integrated into Artificial Intelligence ap
 
 Projects:
 
-- Gradient Descent Logistic Regression
+- Gradient Descent and Logistic Regression
 
 Contact for access: elejking@umich.edu
