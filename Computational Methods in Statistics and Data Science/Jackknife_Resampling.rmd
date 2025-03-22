@@ -1,0 +1,442 @@
+---
+title: "HW08"
+author: "Eleanor King, elejking"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+set.seed(320930033)
+library(tidyverse)
+```
+
+## Question 1 (5 pts)
+
+The Gini coefficient is a measure of "inequality" of a distribution, as expressed as the expected absolute difference between two randomly selected members of a population. Formally,
+
+$$G = \frac{1}{2\mu} \int_{-\infty}^\infty \int_{-\infty}^\infty |x - y| f(x) f(y) \, dx \, dy$$
+
+In a distribution with only one possible value $P(X = a) = 1$ for some $a$, the Gini coefficient is zero. When a very small proportion of variables have very large values relative to the remainder of the population, the Gini coefficient approaches 1.
+
+### Part (a) (1 pt)
+
+Suppose $X$ is a continuous random variable (i.e., $P(X_i = X_j) = 0$ for any sample), a natural estimator of $G$ uses the **empirical mass function**  $\hat f(x) = 1/n \sum_{i=1}^n I(X_i = x)$ in place of $f$, to get
+$$\hat G = \frac{1}{2 \bar X} \sum_{i=1}^n \sum_{j = 1}^n |X_i - X_j| \frac{1}{n} \frac{1}{n} = \frac{1}{2 \bar X n^2} \sum_{i=1}^n \sum_{j = 1}^n |X_i - X_j|$$
+Write a function to compute $\hat G$. Verify your solution on the following sample,
+```{r}
+v <- c(1.21889696917952, 0.0794705920852721, 0.239628585986793, 1.31094594481857, 
+0.946306612446215, 0.18770645884797, 0.0990762918207918, 0.899883037391019, 
+1.11378922029854, 1.14929740592362)
+```
+
+```{r}
+gini <- function(x) {
+  n <- length(x)
+  x_bar <- mean(x)
+  sum_diff <- sum(abs(outer(x,x,"-")))
+  g_hat <- sum_diff / (2 * x_bar * n^2)
+  return(g_hat)
+}
+
+gini_v <- gini(v)
+gini_v
+```
+
+### Part (b) (1 pt)
+
+Implement a jackknife variance estimator for the variance of the statistic $\hat G$:
+
+$$v = \frac{n - 1}{n} \sum_{i=1}^n (\hat G_i - \hat G)^2$$
+
+where $\hat G_i$ applies the Gini coefficient estimator to the sample with **observation $i$ removed**.
+
+You may verify the correct answer is `0.01151351`.
+
+```{r}
+var_gini <- function(x) {
+  n <- length(x)
+  gini_hat <- gini(x)
+  gini_hat_i <- sapply(1:n, function(i) gini(x[-i]))
+  var <- ((n - 1) / n) * sum((gini_hat_i - gini_hat)^2)
+  return(var)
+}
+
+var_gini_v <- var_gini(v)
+var_gini_v
+```
+
+
+### Part (c) (2 pt)
+
+Read the paper "A Method to Calculate the Jackknife Variance Estimator for the Gini Coefficient." Implement the version of the jackknife variance estimator given in that paper using the re-expression of $\hat G_i$ given equation (9) on page 3.
+
+Verify your solution by comparing it to the answer you get in (b).
+
+#### Clarifications
+
+On the whole, I like the authors' explanation of their method, but I noticed several points that require clarification.
+
+- The authors are never quite explicit, but they assume that all the data is sorted from low to high. You can use the `sort` function to ensure this holds.
+- The authors call $r_i$ the "income rank" of the $i$th observation. After sorting your data, $r_i = i$. In R terms, `y <- sort(x) ; r <- 1:length(y)`.
+- You may find the following functions useful: `sum`, `rev` (reverses a vector), and `cumsum` (provides a cumulative sum of a vector). In particular, when computing the terms $K_i$.
+- The expression in Equation (9) requires that you have a term $K_{n + 1} = 0$. After you create your $K$ vector, you can then update it to `K <- c(K, 0)`.
+- Karagiannis and Kovacevic emphasize that their method only requires two passes the through the data; while that is interesting, you may make as may passes through the data as you wish (for example by calling `mean` or `sum`), but you should never compute all the pairwise differences. We are mostly interested in the fact that we can sort the data using approximately $n \log(n)$ operations instead of the much larger $n^3$ operations needed to compute all $n^2$ differences for each of $n$ values $\hat G_i$.
+
+```{r}
+gini <- function(x) {
+  n <- length(x)
+  y <- sort(x)
+  mu <- mean(y)
+  r <- 1:n
+  sum_diff <- sum((2 * r - n - 1) * y)
+  gini_coeff <- sum_diff / (n * (n - 1) * mu)
+  return(gini_coeff)
+}
+
+jack_knife_var <- function(x) {
+  n <- length(x)
+  gini_hat <- gini(x)
+  
+  gini_hat_i <- sapply(1:n, function(i) gini(x[-i]))
+  var_gini <- ((n-1) / n) * sum((gini_hat_i - gini_hat)^2)
+  return(var_gini)
+}
+
+v <- c(10, 20, 30, 40, 50)
+
+var_gini <- jack_knife_var(v)
+var_gini
+
+## very similar to the variance found in part (b)
+```
+### Part (d) (1 pt)
+
+```{r, eval = TRUE}
+load("sf_2019_compensation.rda")
+ggplot(sf_2019_compensation, aes(x = Total.Salary)) + geom_density()
+```
+
+Here is a sample of 1000 employees from the City of San Francisco. Among other variables, we have information on the total salary disbursed in 2019. Create Studentized bootstrap 95% confidence intervals for the Gini coefficient for total salary for all employees of the City of San Francisco using the jackknife variance estimator from part (c). You may carefully follow (i.e., copy and paste) the examples from the slides. Remember to return two things in your statistic function: the value of the Gini coefficient the bootstrap sample and the estimated variance for that bootstrap sample (using the jackknife from (c)). Use 1000 bootstrap replications.
+
+Comment on the intervals. Would you exclude the hypothesis that the true Gini coefficient was 0.2?
+
+```{r}
+gini <- function(x) {
+  n <- length(x)
+  y <- sort(x)
+  mu <- mean(y)
+  r <- 1:n
+  sum_diff <- sum((2 * r - n - 1) * y)
+  gini_coeff <- sum_diff / (n * (n - 1) * mu)
+  return(gini_coeff)
+}
+
+jack_knife_var <- function(x) {
+  n <- length(x)
+  gini_hat <- gini(x)
+  
+  gini_hat_i <- sapply(1:n, function(i) gini(x[-i]))
+  var_gini <- ((n-1) / n) * sum((gini_hat_i - gini_hat)^2)
+  return(var_gini)
+}
+
+bootstrap_gini <- function(data, n_boot = 1000) {
+  n <- length(data)
+  gini_hat <- gini(data)
+  var_gini_hat <- jack_knife_var(data)
+  boot_gini <- numeric(n_boot)
+  boot_var <- numeric(n_boot)
+  
+  set.seed(406)
+  
+  for (i in 1:n_boot) {
+    boot_sample <- sample(data, n , replace = TRUE)
+    boot_gini[i] <- gini(boot_sample)
+    boot_var[i] <- jack_knife_var(boot_sample)
+  }
+  
+  z_scores <- (boot_gini - gini_hat) / sqrt(boot_var)
+  alpha <- 0.05
+  z_alpha_lower <- quantile(z_scores, alpha / 2)
+  z_alpha_upper <- quantile(z_scores, 1 - alpha / 2)
+  
+  ci_lower <- gini_hat - z_alpha_upper * sqrt(var_gini_hat)
+  ci_upper <- gini_hat - z_alpha_lower * sqrt(var_gini_hat)
+  
+  return(c(ci_lower, ci_upper))
+}
+
+total_salary <- sf_2019_compensation$Total.Salary
+gini_ci <- bootstrap_gini(total_salary)
+
+gini_ci
+
+# The interval does not contain 0.2, so we reject the hypothesis that the true Gini coefficient is 0.2
+```
+
+
+## Question 2 (8 points)
+
+The Service Employees International Union is one of the largest unions in the United States, representing workers involved in various service jobs, just as catering, janitorial services, and many other areas. It is one of the larger unions with respect to the City of San Francisco work force as well. Let's compare the compensation of SEIU employees to other employees.
+
+```{r}
+sf_2019_compensation |> mutate(seiu = str_detect(Union, "SEIU")) -> sf_2019_compensation
+ggplot(sf_2019_compensation, aes(x = Total.Compensation, color = seiu, fill = seiu)) + geom_density(alpha = 0.8)
+```
+
+### Part (a) (2 pts)
+
+Create a difference of means permutation test to test the hypothesis that the average compensation of SEIU workers is the same as the average compensation of other workers. Use 10,000 permutations. Plot the null distribution. What is the p-value of the test?
+
+```{r}
+sf_2019_compensation <- sf_2019_compensation %>%
+  mutate(seiu = str_detect(Union, "SEIU"))
+
+observed_diff <- sf_2019_compensation %>%
+#  group_by(seiu) %>%
+#  summarize(mean_comp = mean(Total.Compensation, na.rm = TRUE)) %>%
+#  spread(seiu, mean_compensation) %>%
+#  summarize(diff = 'TRUE' - 'FALSE') %>%
+#  pull(diff)
+
+#set.seed(406)
+#n_perm <- 10000
+#perm_diffs <- replicate(n_permutations, {
+#  permuted_seiu <- sample(sf_2019_compensation$seiu)
+#  sf_2019_compensation$seiu <- permuted_seiu
+  
+#  perm_diff <- sf_2019_compensation %>%
+#    group_by(seiu) %>%
+#    summarize(mean_compensation = mean(Total.Compensation, na.rm = TRUE)) %>%
+#    spread(seiu, mean_compensation) %>%
+#    summarize(diff = 'TRUE' - 'FALSE') %>%
+#    pull(diff)
+  
+#  return(perm_diff)
+#})
+
+
+
+#p_value <- mean(abs(perm_diffs) >= abs(observed_diff))
+#p_value
+
+#ggplot(data.frame(perm_diffs), aes(x = perm_diffs)) +
+ # geom_histogram(binwidth = 1000, fill = "blue", color = "black") +   geom_vline(xintercept = observed_diff, color = "red") +
+ # labs(title = "Null Distribution of Mean Differences",
+  #     x = "Difference in Means (Permuted)", y = "Frequency") 
+
+```
+
+### Part (b) (2 pts)
+
+What if we hypothesize,  however, that SEIU workers have compensation that is drawn from a distribution that is the same as other workers, but shifted by some amount $\theta$? In other words, if we subtracted $\theta$ from the compensation of each SEIU worker, and repeated the test, would we still reject the null hypothesis?
+
+Create a 95% confidence interval for $\theta$.
+
+```{r}
+permutation_test_shift <- function(theta, data, n_perm = 10000) {
+  adjusted_data <- data %>% 
+    mutate(Total.Copmensation = ifelse(seiu, Total.Compensation - theta, Total.Compensation))
+
+if(any(is.na(adjusted_data$Total.Compensation))) {
+  stop("Adjusted")
+}
+  obs_diff <- adjusted_data %>%
+    group_by(seiu) %>%
+    summarize(mean_comp = mean(Total.Compensation, na.rm = TRUE)) %>%
+    summarize(diff = diff(mean_comp)) %>%
+    pull(diff)
+  
+  perm_diffs <- numeric(n_perm)
+  
+  for (i in 1:n_perm) {
+    permuted_data <- adjusted_data %>%
+      mutate(seiu = sample(seiu))
+    
+    perm_diffs[i] <- permuted_data %>%
+      group_by(seiu) %>%
+      summarize(mean_comp = mean(Total.Compensation, na.rm = TRUE)) %>%
+      summarize(diff = diff(mean_comp)) %>%
+      pull(diff)
+  }
+  p_value <- mean(abs(perm_diffs) >= abs(obs_diff))
+  return(p_value)
+}
+
+theta_p_values <- sapply(theta_values, function(theta) permutation_test_shift(theta, sf_2019_compensation, n_perm = 1000))
+
+theta_ci <- theta_values[theta_p_values >= 0.05]
+ci_range <- range(theta_ci)
+ci_range
+```
+
+### Part (c) (2 points)
+
+In class we observed that because the Kolmogorov-Smirnov test did not use the data directly, it only used the ranks of the data, we could figure out the distribution of the KS test statistic without having to know anything other than the sample sizes. A similar technique could be used on our difference of means test by **replacing the data with ranks**. Repeat the test from part (a) using ranks instead of the data. **You should compute the null distribution without using the observed data**. What is the p-value of the test?
+
+```{r}
+rank_based_permutation <- function(data, n_perm = 10000) {
+  data <- data %>%
+    mutate(Rank = rank(Total.Compensation))
+  
+  observed_diff <- data %>%
+    group_vy(seiu) %>%
+    summarize(mean_rank = mean(Rank)) %>%
+    summarize(diff = diff(mean_rank)) %>%
+    pull(diff)
+  
+  n_seiu <- sum(data$seiu)
+  perm_diffs <- numeric(n_perm)
+  
+  for (i in 1:n_perm) {
+    permuted_data <- adjusted_data %>%
+      mutate(seiu = sample(seiu))
+   
+    perm_diffs[i] <- mean_seiu_rank = mean_non_seiu_rank
+  }
+  p_value <- mean(abs(perm_diffs) >= abs(observed_diff))
+  
+  list(
+    p_value = p_value,
+    null_distribution = perm_diffs,
+    observed_diff = observed_diff
+  )
+}
+
+result <- rank_based_permutation_test(sf_2019_compensation)
+
+ggplot(data.frame(perm_diffs = result$null_distribution), aes(x = perm_diffs)) +
+  geom_histogram(BINWIDTH = 0.5, FILL = "blue", color = "black") + 
+  geom_vline(xintercept = result$observed_diff, color = "red", linetype = "dashed") + 
+  labs(title = "Null Distribution of Mean Rank Differences",
+       x = "Difference in Mean Ranks (Permuted)", y = "Frequency") 
+
+result$p_value
+```
+
+### Part (d) (2 points)
+
+Compare your results from (c) with the output of the function `wilcox.test`. What do you notice? 
+
+Using the `wilcox.test` function, repeat part (b) to get a confidence interval for $\theta$.
+
+```{r}
+wilcox_test_result <- wilcox.test(
+  Total.Compensation ~ seiu,
+  data = sf_2019_compensation,
+  conf.int = TRUE
+)
+
+wilcox_test_result
+```
+## Question 3 (5 pts)
+
+The following data come from [a study of breast cancer biopsies](http://mlr.cs.umass.edu/ml/datasets/Breast+Cancer+Wisconsin+%28Diagnostic%29). 
+```{r}
+cancer <- read.csv("cancer_cell_biopsy.csv", header = FALSE)
+col_base <- c("radius",
+              "texture",
+              "perimeter",
+              "area",
+              "smoothness",
+              "compactness",
+              "concavity",
+              "concave_points",
+              "symmetry",
+              "fractal_dimension")
+
+cols <- c(paste0(col_base, "_mean"), paste0(col_base, "_sd"), paste0(col_base, "_worst"))
+
+colnames(cancer) <- c("ID", "Diagnosis", cols)
+
+## The current diagnosis is either "B" or "M". We'll turn this into a logical/boolean so it is a little easier to work with in R.
+cancer <- mutate(cancer, benign = Diagnosis == "B")
+```
+
+Suppose that we interested in using the radius of the cells in the biopsy to help us predict the fractal dimension (a measure of how "wiggly" the border is). This could be useful if fractal dimension provides useful diagnostic information, but is more costly to measure than radius. Predicting the fractal dimension from the radius could then be a particularly useful technique.
+
+In the following, let $X_i$ be `radius_mean` for each subject and let $Y_i$ be `fractal_dimension_mean` for each subject As we did with the bootstrap homework problems, suppose we assume that
+$$Y_i = \beta_0 + \beta_1 X_i + R_i$$
+$R_i$ is an unobserved, latent variable. We will assume that it is **independent of $X_i$**. 
+
+Note that $Y_i$ and $X_i$ are **independent** if and only if $\beta_1 = 0$.
+
+### Part (a) (2 pt)
+
+In class, we saw a permutation test that used the **correlation** between between $Y$ and $X$ to test the null hypothesis that $X$ and $Y$ were independent.
+
+Propose a **distribution free** version of of the correlation test and implement it to test the hypothesis that $\beta_1 = 0$ at the $\alpha = 0.05$ level. You may either find a 5% rejection region or compute the p-value and interpret the result. (Hint: Recall that we found a distribution free method (the Wilcoxon-Mann-Whitney test) by taking the ranks of the data and then performing a difference of means permutation test.)
+
+```{r}
+X <- cancer$radius_mean
+Y <- cancer$fractal_dimension_mean
+
+rank_X <- rank(X)
+rank_Y <- rank(Y)
+
+observed_correlation <- cor(rank_X, rank_Y, method = "pearson")
+
+set.seed(406)
+n_permutations <- 10000
+null_correlations <- numeric(n_permutations)
+
+for (i in 1:n_permutations) {
+  permuted_rank_Y <- sample(rank_Y)
+  null_correlations[i] <- cor(rank_X, permuted_rank_Y, method = "pearson")
+}
+
+p_value <- mean(abs(null_correlations) >= abs(observed_correlation))
+
+list(
+  observed_correlation = observed_correlation,
+  p_value = p_value
+)
+```
+
+
+### Part (b) (3 pts)
+
+If $\beta_1 \ne 0$, then lets try to find a confidence interval for it. Propose an adjustment function $h$ such that:
+$$Y_i' = h(Y_i, X_i, \beta_1)$$
+makes $Y_i'$ independent of $X_i$. 
+
+Propose such an adjustment and use the test from part (a) to construct a 95\% confidence interval for $\beta_1$. **Important**: One advantage of a distribution free method is that the distribution of the test statistic does not depend on the parameter $\beta_1$ (making it much more computationally efficient in many cases). Your method should compute the distribution for the test statistic **once** and then test each hypothesized $\beta_1$ value using that distribution.
+
+Here is a range of $\beta_1$ values to test. While these may look small in magnitude, they reflect the fact that `radius_mean` and `fractal_dimension_mean` are on very different scales. 
+```{r}
+critical_value <- quantile(null_correlations, 0.95, na.rm = TRUE)
+
+betas <- seq(-0.001, 0.001, length.out = 1000) 
+accepted_betas <- numeric(0)
+
+for (beta_1 in betas) {
+  Y_prime <- data$Y - beta_1 * data$X
+  
+  test_statistic <- abs(cor(rank(dat$X), rank(Y_prime), method = "pearson"))
+  if (!is.na(test_statistic) && test_statistic <= critical_value) {
+    accepted_betas <- c(accepted_betas, beta_1)
+  }
+}
+
+if (length(accepted_betas) > 0) {
+  CI_lower <- min(accepted_betas)
+  CI_upper <- max(accepted_betas)
+  confidence_interval <- c(CI_lower, CI_upper)
+} else {
+  cofidence_interval <- NA
+}
+
+
+list(
+  confidence_interval = c(CI_lower, CI_upper),
+  accepted_betas = accepted_betas
+)
+```
+
+## Question 4 (2 pt)
+
+
+In the paper "Serial dependence in visual perception," read the introduction, the first results section ("Serial dependence in orientation perception"), Fig 2, and the Experiment 1 section of the "Online Methods" supplement (p. 7). Carefully read the *Analysis* section of Experiment 1 portion of Online Methods and understand the statistical tests used in making the claim that serial autocorrelation is present in visual processing. Write a paragraph explaining the main question of the research, briefly summarizing the experiment described in the "Serial dependence in orientation perception", and explain the use of permutation tests in the analysis of Experiment 1. Pay careful attention to (a) what variables were permuted and (b) what was the test statistic used.
+
+In "Serial dependence on visual perception", Fischer and Whitney aim to address why and how human visualization capitalizes the general continuity of our physical environment over time. They sought to demonstrate our visual system's dependence on visual stability. One way in which they experimented was to ask participants to report the position of Gabor stimuli over multiple trials. They sought to assess whether participants' perceptions of the stimuli's orientation in the current trial were biased by the orientation of the stimuli in the previous trial. In order to evaluate the significance of observed biases, they permuted the observed orientation errors in order to determine if the bias could have occurred by chance alone. The test statistic they used was the amplitude of the attraction effect. They found that perceptions were consistently biased towards what participants saw in the previous trial, demonstrating dependence on perception.
+
