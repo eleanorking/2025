@@ -24,7 +24,7 @@ When sectoral composition variables were included in the first of the two altern
 
 The following table represents the cross-validated RMSE values for the four models evaluated in the study. The differences in RMSE emphasize the importance of considering population size in tandem with sectoral influence across metropolitan areas and across sectors. Cross-validated RMSE was calculated using 10-fold cross-validation, which measures the average deviation between the observed and predicted log-transformed values of GMP. 
 
-| Model  | RMSE Loss (Cross-Validated |
+| Model  | RMSE Loss (Cross-Validated) |
 |------------|------------|
 | Base Model| 288 | 0.222584 | 
 | Alternative Model 1| 0.2222759 | 
