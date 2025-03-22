@@ -2,7 +2,9 @@
 <h1 align="center">Hi 👋, I'm Eleanor King</h1>
 <h3 align="center">[caption]</h3>
 
-- 🌱 I’m currently learning **Bayesian Data Analysis, Techniques in Survey Sampling, Advanced Data Modeling and Writing for Empirical Research**
+- 🌱 I’m currently learning **Bayesian Data Analysis
+Techniques in Survey Sampling
+Advanced Data Modeling and Writing for Empirical Research**
 
 - 📝 My published work: [https://doi.org/10.1111/jfr3.12974](https://doi.org/10.1111/jfr3.12974)
 
