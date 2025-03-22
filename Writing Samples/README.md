@@ -38,8 +38,12 @@ The probabilities of upward mobility for each region, along with their confidenc
 
 Table 1: Probability of upward mobility by U.S. Census Region (with Confidence Intervals)
 
-
-
+| Region  | Total Lowstart   | Total Upmovers   | Probability of Upward Mobility | Confidence Interval (Agresti-Coull)
+|------------|------------|------------|------------|------------|
+| midwest| 288 | 27 | 0.094 | 0.095, 0.093 |
+| northeast| 382 | 34 | 0.089 | 0.090, 0.088 |
+| south | 486 | 36 | 0.074 | 0.075, 0/073 |
+| west | 420 | 34 | 0.081 | 0.082, 0.080 |
 
 The national probability of upward mobility, corrected for regional sampling skewness, is approximately 8.3%.
 The data reveals significant regional differences in upward mobility probabilities across the 40 commuting zones. In general, the South exhibits the lowest overall mobility probability at 7.41%, suggesting that individuals from lower income families in the region have a relatively low chance of achieving higher income levels by age 30. In contrast, the Midwest shows the highest upward mobility probability at 9.38%, indicating that individuals in this region have a higher likelihood of economic success compared to those in other regions. The Northeast and West regions have moderate upward mobility probabilities at 8.9% and 8.1%, respectively. 
