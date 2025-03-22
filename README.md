@@ -1,5 +1,7 @@
 <h1 align="center">Hi 👋, I'm Eleanor King</h1>
-<h3 align="center">University of Michigan Statistics (May 2025 Graduation)</h3>
+<h3 align="center">University of Michigan, Major: Statistics Minor: Economics (May 2025 Graduation)</h3>
+
+- 📍 Ann Arbor, MI
 
 - 🔭 I’m currently working on [Modeling Economic Productivity and Sectoral Influence](https://docs.google.com/document/d/1csZw1qjzshaKjXMfBazld7NBjHOd-_38_nIE9RikmhY/edit?tab=t.0#heading=h.b5q8ilk2zqt0)
 
