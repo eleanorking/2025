@@ -1,6 +1,7 @@
 **Economic Mobility Across the U.S.**
 
 **Introduction**
+
 The extent to which individuals can improve their economic standing is a defining measure of opportunity in any society. Economic mobility is the ability of individuals to improve their economic status relative to their family background. This study investigates the extent to which individuals born into lower income households achieve upward mobility, defined as reaching the highest quintile of income by age 30. Understanding these patterns is critical for policymakers and stakeholders seeking to address economic disparities and promote opportunity for economic advancement.
 
 Using data from the U.S. Internal Revenue Service, this analysis focuses on young adults from 40 commuting zones across the United States. The data track household incomes when individuals were 16 years old and their personal incomes at age 30. We calculate upward mobility probabilities by region, correct for sampling biases, and identify regional patterns that highlight disparities in economic opportunity. 
@@ -10,6 +11,7 @@ Our findings reveal stark differences in upward mobility across census regions, 
 To provide a robust estimate of the upward mobility in these regions, confidence intervals for the probabilities of upward mobility are calculated. The Agresti-Coull confidence interval is used for the estimates due to its ability to provide more reliable intervals for proportions especially when dealing with sample proportions close to 0 or 1, as well as its simplicity. 
 
 **Methodology**
+
 The dataset is derived from a study that selected representative samples from each of 40 commuting zones across the United States. Each sample includes individuals born between 1980 and 1982 who grew up in households in the lowest quintile for income. Their family incomes in the year they turned 16 were recorded, as well as their own personal income in 2010. The data covers four regions of the United States: West, Midwest, Northeast, and South, with each region sampled at varying rates to account for population differences across regions. 
 
 The sub samples were selected using probability proportional to size sampling. Within each region, individuals were selected at random from those born between 1980 and 1982 living in the selected commuting zones. However, because individuals were only sampled if their respective commuting zones were selected, the full U.S. sample is not representative of the national population as a whole. Therefore, appropriate weights were applied to correct for the underrepresentation of certain regions, particularly the South, providing a more accurate estimate of upward mobility across the entire U.S.
@@ -31,6 +33,7 @@ For each region and commuting zone, the Agresti-Coull confidence interval was ca
 Weighting adjustments were made to ensure that the estimates for the U.S. as a whole account for the non-representative sample of certain regions. This involves applying population based weights to the estimates for each zone to correct for the varying sample rates across zones. 
 
 **Results**
+
 The probabilities of upward mobility for each region, along with their confidence intervals, are presented in the following table:
 
 Table 1: Probability of upward mobility by U.S. Census Region (with Confidence Intervals)
@@ -67,6 +70,7 @@ The data reveals significant regional differences in upward mobility probabiliti
 However, the regional averages fail to capture the considerable variation in mobility within each region, as indicated by the range of probabilities across zones within each region. The probabilities of upward mobility in the South range from 7.3% to 7.5%, reflecting some variability. While some zones in the South show relatively low mobility, others exhibit higher rates, suggesting that local factors, such as educational opportunities or access to high paying jobs, may play a significant role in shaping upward mobility. In the Midwest, upward mobility probabilities range from 9.3% to 9.8%. Although this region shows the highest average mobility, the range of possible probabilities indicates zones of higher and lower mobility within the region, likely due to local differences in economic conditions, educational systems, or other external factors. The Northeast region displays upward mobility probabilities ranging from 8.8% to 9.0%. While the average rate of mobility is relatively high, the range indicates that there are zones where upward mobility is potentially lower, possibly due to regional economic challenges or other barriers to economic mobility. The West region shows upward mobility probabilities ranging from 8.0% to 8.2%. Although the average mobility rate is moderate, the range suggests significant local differences with some zones experiencing better or worse mobility prospects than others. Factors such as cost of living, educational access, and other economic opportunities may contribute to this variation. Overall, we see relatively minimal variation within each region, suggesting that making regional divisions is a useful method of analysis for economic mobility.
 
 **Discussion**
+
 The south shows significantly lower upward mobility than other regions which could indicate structural or policy related barriers to economic opportunity. The Midwest consistently demonstrates higher upward mobility, possibly due to factors like education quality or economic diversity. 
 
 These findings highlight the need for targeted policies to address regional disparities in economic opportunity. Not only do we see significant differences zone to zone, but we also see differences within zones themselves that necessitate zone specific intervention. Access to education and improvement in public education standards, particularly within low mobility areas, could enhance economic outcomes. 
