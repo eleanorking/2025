@@ -1,5 +1,5 @@
 <h1 align="center">Hi 👋, I'm Eleanor King</h1>
-<h3 align="center">University of Michigan, Major: Statistics Minor: Economics (May 2025 Graduation)</h3>
+<h3 align="center">University of Michigan, Major: Statistics | Minor: Economics (May 2025 Graduation)</h3>
 
 - 🌱 Current courses: **Bayesian Data Analysis (R Programming), Techniques in Survey Sampling (R Programming), Advanced Data Modeling and Writing for Empirical Research (R Programming)**
 
