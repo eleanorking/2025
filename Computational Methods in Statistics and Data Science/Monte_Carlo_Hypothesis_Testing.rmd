@@ -1,0 +1,306 @@
+--
+title: "HW04"
+author: "Eleanor King, elejking"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+set.seed(394932)
+library(tidyverse)
+```
+
+
+## Problem 1 (10 points)
+
+In this problem we will create a confidence interval for the median of a Cauchy distribution.
+
+As we saw in class, the Cauchy distribution has a density function given by:
+
+$$f(x) = \frac{1}{\pi[1 + (x - \theta)^2]}$$
+
+where $\theta$ is the location parameter.
+
+### Part (a) (2 pt)
+
+Prove $\theta$ is the median of the Cauchy distribution.
+
+Hint: Use a change of variables and the fact that $\frac{d}{dz} \arctan(z) = \frac{1}{1 + z^2}$.
+
+PDF --> CDF:
+
+Setting z = x - $\theta$ we have:
+F(x, $\theta$) = $\int_{-\infty}^x \frac{1}{\pi[1+(t-\theta)^2]}dt = \frac{1}{\pi}(arctan(x - \theta) + \frac{\pi}{2}) = \frac{1}{\pi}arctan(x - \theta) + \frac{1}{2}$
+Implementing in R:
+
+```{r}
+# Evaluating the CDF at x = theta
+cauchy_cdf <- function(x, theta) {
+  return((1/pi) * atan(x - theta) + 0.5)
+}
+# location parameter, theta
+theta <- 1
+theta_cdf <- cauchy_cdf(1, theta)
+theta_cdf
+```
+
+### Part (b) (2 pt)
+
+Using Monte Carlo techniques set up a hypothesis test with a null hypothesis that $\theta = 0$ against the alternative that $\theta \ne 0$. Use a sample size of $n = 100$ and a significance level of $\alpha = 0.05$.
+
+Generate draws from alternative distributions when (a) $\theta = 1$ and (b) $\theta = -1$. Use this to pick a rejection region that is the union of two rejection regions of equal size $\alpha/2$.
+
+Reminder, the function `rcauchy` will generate random samples from the Cauchy distribution.
+
+```{r}
+# Use sample median as test statistic
+# null: theta = 0
+# alt: theta =/= 0
+set.seed(734)
+hypothesis_test <- function(n, theta_0, theta_a, alpha = 0.05, simulations = 10000) {
+  crit_val <- numeric(2)
+  
+  null <- replicate(simulations, median(rcauchy(n, location = theta_0)))
+  
+  crit_val[1] <- quantile(null, alpha / 2)
+  crit_val[2] <- quantile(null, 1 - alpha / 2)
+  
+  alt <- replicate(simulations, median(rcauchy(n, location = theta_0)))
+  
+  reject <- mean(alt < crit_val[1] | alt > crit_val[2])
+  
+  return(list(crit_val = crit_val, reject = reject))
+}
+
+theta_1 <- hypothesis_test(n = 100, theta_0 = 0, theta_a = 1)
+theta_neg_1 <- hypothesis_test(n = 100, theta_0 = 0, theta_a = -1)
+
+# rejection region
+theta_1$crit_val
+# if p < 0.05: reject the null in favor of the alternative that theta_a = 1, if p < 0.05: fail to reject the null
+theta_1$reject
+# if p < 0.05: reject the null in favor of the alternative that theta_a = -1, if p < 0.05: fail to reject the null
+theta_neg_1$reject
+```
+
+### Part (c) (2 pt)
+
+Using your code developed in part (b), write a function that given a sample size $n$, a significance level $\alpha$, and a location parameter $\theta_0$ will return the acceptance region for the null hypothesis that $\theta = \theta_0$.
+
+Test your function with $n = 100$, $\alpha = 0.05$, and $\theta_0 = 0$.
+
+```{r}
+accept_region <- function(n, theta_0, alpha, simulations = 10000) {
+  median_0 <- replicate(simulations, median(rcauchy(n, location = theta_0)))
+  
+  lower_bound <- quantile(median_0, alpha / 2)
+  upper_bound <- quantile(median_0, 1 - alpha / 2)
+  
+  return(c(lower_bound, upper_bound))
+}
+
+accept_region(n = 100, theta_0 = 0, alpha = 0.05)
+
+```
+
+### Part (d) (4 pt)
+
+```{r}
+set.seed(406460406)
+n <- 25
+x <- rcauchy(n, location = 7)
+y <- rcauchy(2 * n, location = 3)
+
+```
+
+Using the test inversion method of confidence interval construction, write a function that will return a confidence interval for the median of the Cauchy distribution given a sample and a confidence coefficient. The method requires that you test a range of values for $\theta$. Test 100 values from the minimum value of the sample to the maximum value of the sample. 
+
+```{r}
+ci_median <- function(sample, conf_level = 0.95) {
+  n <- 100
+  sorted_sample <- sort(sample)
+  thetas <- seq(sorted_sample[1], sorted_sample[length(sample)], length.out = n)
+  n_sample <- length(sample)
+  alpha <- 1 - conf_level
+  
+  k1 <- qbinom(alpha / 2, n_sample , 0.5)
+  k2 <- qbinom(1 - alpha / 2, n_sample , 0.5)
+
+  check_theta <- function(theta) {
+    k <- sum(sample <= theta)
+    return(k >= k1 && k <= k2)
+  }
+  
+  in_accept <- sapply(thetas, check_theta)
+  
+  if (any(in_accept)) {
+    ci_lower <- min(thetas[in_accept])
+    ci_upper <- max(thetas[in_accept])
+  } else {
+    ci_lower <- NA
+    ci_upper <- NA
+  }
+  return(c(ci_lower, ci_upper))
+}
+  
+  
+ci_x <- ci_median(x)
+ci_y <- ci_median(y)
+
+ci_x
+ci_y
+```
+
+## Problem 2 (6 points)
+
+Suppose we are sampling independent observations $X_i$ from a distribution for which we assume
+$$\text{E}(X) < \infty, \quad \text{E}(X^2) < \infty$$
+so that the Central Limit Theorem will apply. Writing $\mu = \text{E}(X)$ and $\sigma^2 = \text{E}((X - \mu)^2)$, the CLT states that for large samples the following approximation holds:
+$$\bar X \sim N(\mu, \sigma^2/n)$$
+A corollary of the CLT is that we have (approximately),
+$$\frac{\bar X - \mu}{s/\sqrt{n}} \sim t(n - 1)$$
+where $s$ is the square root of the sample variance and $t(d)$ is the $t$-distribution with $d$ degrees of freedom. As we saw in class, this gives rise to $(1 - \alpha) \times 100\%$ confidence intervals defined by the set of (two-sided) hypothesis tests that would not be rejected at the $\alpha$ level:
+$$\bar X \pm t_{\alpha/2}(n - 1) s/\sqrt{n}$$
+
+If $\bar X$ were really Normal, this relationship would hold exactly (which would only occur when the $X_i$ are themselves Normal), but the rest of the time it is simply an approximation. Let's test how well it works in some specific cases.
+
+For each problem, generate 10,000 samples (each of size $n$, given below) and compute a 95\% confidence interval. Estimate the confidence coefficient (i.e., $P(\mu \in \bar X \pm t_{0.975}(19) s/\sqrt{20})$) and provide a 99\% CI for the confidence coefficient itself (use `binom.test`).
+
+### Part (a) (2 pt)
+
+The Laplace distribution (also known as the "double exponential distribution") is given by:
+
+$$f(x) = \frac{1}{2} \exp\left\{ -\left| x - \mu \right| \right\}$$
+and can be generated using the following function:
+
+```{r}
+rlaplace <- function(n, mean) {
+  s <- 2 * rbinom(n, size = 1, p = 0.5) - 1
+  m <- rexp(n) 
+  s * m + mean
+}
+```
+
+Estimate the coverage rate for a 95\% two-sided confidence interval (use `t.test`) from samples drawn from:
+
+$$n = 20, X_i \sim \text{Laplace}(1/2), \text{E}(X) = 1/2$$
+```{r}
+n <- 20
+mu <- 1/2
+n_simulations <- 10000
+coverage <- replicate(n_simulations, {
+  sample <- rlaplace(n, mean = mu)
+  t_test <- t.test(sample, conf.level = 0.95)
+  ci_lower <- t_test$conf.int[1]
+  ci_upper <- t_test$conf.int[2]
+  
+  return(mu >= ci_lower && mu <= ci_upper)
+})
+
+coverage_rate <- mean(coverage)
+coverage_rate
+
+binom_test <- binom.test(sum(coverage), n_simulations, conf.level = 0.99)
+binom_test$conf.int
+```
+
+### Part (b) (2 pt)
+
+Compare two different sample sizes (see `rexp` to generate your samples):
+
+$$n = 20, X_i \sim \text{Exp}(2), \text{E}(X) = 1/2$$
+
+$$n = 500, X_i \sim \text{Exp}(2), \text{E}(X) = 1/2$$
+
+What do you notice?
+
+```{r}
+estimate_coverage <- function(n, rate, mu, n_simulations) {
+  coverage <- replicate(n_simulations, {
+    sample <- rexp(n, rate = rate)
+    t_test <- t.test(sample, conf.level = 0.95)
+    ci_lower <- t_test$conf.int[1]
+    ci_upper <- t_test$conf.int[2]
+    return(mu >= ci_lower && mu <= ci_upper)
+  })
+  return(mean(coverage))
+}
+
+rate <- 2
+mu <- 1 / rate
+n_simulations <- 10000
+
+coverage_n20 <- estimate_coverage(n = 20, rate = rate, mu = mu, n_simulations = n_simulations)
+coverage_n500 <- estimate_coverage(n = 500, rate = rate, mu = mu, n_simulations = n_simulations)
+
+coverage_n20 
+coverage_n500 
+# Larger sample results in greater coverage
+```
+
+### Part (c) (2 pt)
+
+Discuss the following "rule of thumb": For any sample size greater than 30, we are safe to approximate the distribution of the sample mean as Normally distributed. Do you agree with this rule of thumb? Why or why not?
+
+This rule of thumb is not reliable. For distributions that aren't normal, a larger sample size will converge to the true population distribution where a normality assumption for the mean wouldn't fit. Additionally, for a normal distribution, a sample size of 31, for example, may not be large enough to assume that the sample mean is normal and will likely result in a skewed mean. In general, we are not safe to approximate that the sample mean is normally distributed for any sample size > 30.
+
+
+
+## Problem 3 (4 points)
+
+### Part (a) (2 pt)
+Read the paper "Does Your iPod Really Play Favorites?" 
+
+Briefly summarize the paper overall and give an explanation of how Monte Carlo methods were used in section 3.3.
+
+"Does Your iPod Really Play Favorites?" by AG Froelich seeks to address user claims that Apples Shuffle feature on the iPod does not in fact randomly shuffle songs in your library. He proposes a null hypothesis that the shuffle feature is truly random and an alternative hypothesis that it is not truly random. He then constructs several probability models to investigate and test these hypotheses.
+
+Froelich begins his analysis by addressing anecdotal evidence in support of the alternative hypothesis. First, he tests the length of time in one shuffle before a particular group occurs. In particular, he uses a hyper-geometric model, under the null hypothesis assumption, to test the Length of Time Before Steely Dan Factor proposed by Steven Levy. Next, Froelich tests the number of songs in one group from one shuffle. Again, he uses a hypergeometric distribution to address the claim that the Shuffle is nonrandom based on the perception that the number of songs from a particular grouping (album, artist, etc.) appear more often in the first n songs of the shuffle than we would expect from a truly random sample. He then investigates the probability of 3 or more songs from one artist being selected as part of the 120 songs randomly chosen from a user's library for the iPod Shuffle's Autofill feature. He uses a multivariate hypergeometric model to find that from a sample of 856 total songs, the probability of 3 or more songs from the library being selected in the 120 song Autofill is 1. Lastly, he investigates the number of shuffles required in order to hear one particular song. He uses a geometric distribution to model the number of shuffles that occur until the particular song appears in the first n songs. 
+
+Froelich then works to address the overall sentiment that there is an over representation of a particular artist early in the shuffled playlist. He conducts several goodness of fit tests for the number of songs from one group appearing in the first n songs of a playlist. He conducted 5 goodness of fit tests related to over representation of certain groups, but failed to find evidence that showed anything that we would not expect in a random sample.
+
+In summary, Froelich fails to reject the null hypothesis and argues that there is no evidence to suggest that the Shuffle feature is not in fact random. Events such as multiple songs from the same album in one shuffle and multiple songs with the same starting letter in one shuffle all fall within the long term expectation of randomness. He adds that randomness is a complex subject and when factors like emotion and personal significance, which are often attached to music, are introduced our already complex perception of randomness becomes even more skewed.
+
+**Explanation of Monte Carlo methods (section 3.3):**
+In section 3.3 Froelich aims to determine the probability that three or more songs from an album are included in the 120 songs randomly selected as part of the IPod Shuffles shuffling process. Froelich uses a hypergeometric distribution to model this, where the number of songs selected from each album is a random variable. He uses Monte Carlo methods to calculate the probability. He simulates a large number of trials where 120 songs are randomly selected from the library, and tracks the number of songs from one album that are selected. After 100,000 trials the number of times that 3 or more songs from an album were selected gives an estimate of the true probability. In particular, the probability of 3 or more songs from an album being in the 120 songs selected is approximately 94.45%. We can conclude that phenomenons like the one Levy observed are not unusual. The simulation is also run a second time to adjust for some users not having entire albums in their library and instead only having a few songs from any one album. 
+
+```
+
+### Part (b) (2 pt)
+
+Write a simulation that replicates the use of Monte Carlo techniques in 3.3. Here is a data set of songs, grouped by album.
+
+```{r}
+set.seed(987987)
+n_albums <- 81
+songs_per_album <- rpois(n_albums, 10)
+artist_per_album <- sample(1:50, n_albums, replace = TRUE)
+
+songs <- tibble(
+  album = rep(1:n_albums, times = songs_per_album),
+  artist = rep(artist_per_album, times = songs_per_album),
+  song = 1:sum(songs_per_album)
+)
+
+## example of a sample of size 120 
+## and counting the number of songs by each artist in the sample
+monte_carlo_sim <- function(n_trials, sample_size) {
+  results <- replicate(n_trials, {
+    sample_songs <- sample_n(songs, sample_size)
+    artists <- table(sample_songs$artist)
+    max(artists)
+  })
+return(results)
+}
+
+monte_carlo_sim_results <- monte_carlo_sim(100000, 120)
+
+prob_3 <- mean(monte_carlo_sim_results >= 3)
+prob_3
+
+##What is the probability of having at least one album with 8 or more songs?
+prob_8 <- mean(monte_carlo_sim_results >= 8)
+prob_8
+```
