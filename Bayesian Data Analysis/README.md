@@ -13,3 +13,4 @@ Completed Projects:
 - Markov Chain Monte Carlo Methods for Multiparameter Models (Pre-election Polling)
 - Bayesian Hierarchical Models (Estimating the Risk of Tumor in a Group of Rats)
   
+Contact for access: elejking@umich.edu
