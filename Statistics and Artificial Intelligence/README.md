@@ -11,6 +11,6 @@ Projects:
 - Two Layer Neural Network (numpy, tensorflow)
 - Regularization Methods (tensorflow, numpy, keras, matplotlib)
 - Convolutional Neural Network Modeling in Tensorflow (tensorflow, keras, matplotlib)
-- 
+
 
 Contact for access: elejking@umich.edu
