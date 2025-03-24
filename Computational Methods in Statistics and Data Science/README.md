@@ -4,17 +4,17 @@ This course introduces basic computational methods as needed in statistics. Sele
 
 Projects:
 
-- Acceptance-Rejection Algorithm Standard Normal
-- Bayesian Analysis Multinomial Data
-- Importance Sampling
-- LaTeX Practice
-- Monte Carlo Estimation
-- Monty Hall Problem
-- Time Series Analysis
-- Poisson Regression Generalized Gaussian Estimation
-- Monte Carlo Hypothesis Test
-- Jackknife Resampling
-- Pseudorandom Number Generation
+- Acceptance-Rejection Algorithm Standard Normal (tidyverse, ggplot2)
+- Bayesian Analysis Multinomial Data (tidyverse)
+- Importance Sampling (tidyverse, boot, MASS)
+- LaTeX Practice (tidyverse, bench, caTools)
+- Monte Carlo Estimation (tidyverse)
+- Monty Hall Problem (tidyverse)
+- Time Series Analysis (tidyverse, MASS)
+- Poisson Regression Generalized Gaussian Estimation (tidyverse, ggplot2)
+- Monte Carlo Hypothesis Test (tidyverse)
+- Jackknife Resampling (tidyverse)
+- Pseudorandom Number Generation (tidyverse, ggplot2)
 
 
 Contact for access: elejking@umich.edu
