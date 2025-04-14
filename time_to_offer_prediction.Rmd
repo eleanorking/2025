@@ -1,0 +1,53 @@
+---
+title: "Job Predictions"
+author: "Eleanor King"
+date: "2025-04-12"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# Necessary libraries
+library(lubridate)
+library(dplyr)
+
+job_data <- data.frame(
+  company = c("company_1", "company_2", "company_3", "company_4", "company_5", "company_6"),
+  total_stages = c(3, 4, 5, 4, 4, 3),
+  interviews_done = c(2, 1, 1, 1, 2, 1),
+  first_interview_date = as.Date(c("2025-03-28", "2025-04-08", "2025-04-09", "2025-04-10", "2025-04-04", "2025-04-03")),
+  current_date = as.Date("2025-04-12"),
+  stringsAsFactors = FALSE
+)
+
+# days between stages for each firm
+job_data$days_between_stages <- list(
+  c(10), # company_1
+  c(6), # company_2
+  c(4), # company_3
+  c(4), # company_4
+  c(6, 4), # company_5
+  c(10) # company_6
+)
+
+# avg. days between stages
+job_data$avg_days_between <- sapply(job_data$days_between_stages, mean)
+
+# remaining stages
+job_data$remaining_stages <- job_data$total_stages - job_data$interviews_done
+
+# total days left until offer
+job_data$est_days_to_offer <- job_data$avg_days_between * job_data$remaining_stages + 5
+
+# predicted offer date
+job_data$predicted_offer_date <- job_data$current_date + round(job_data$est_days_to_offer) + 5
+
+# results
+job_data[, c("company", "interviews_done", "remaining_stages", "predicted_offer_date")]
+
+job_data %>% 
+  dplyr::select(company, predicted_offer_date, est_days_to_offer, remaining_stages)
+```
