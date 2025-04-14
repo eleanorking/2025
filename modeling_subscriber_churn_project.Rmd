@@ -1,0 +1,155 @@
+---
+title: "Modeling Subscriber Churn Personal Project"
+author: "Eleanor King"
+date: "2025-04-12"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+install.packages("car")
+library(tidyverse)
+library(readxl)
+library(lubridate)
+library(caret)
+library(dplyr)
+library(car)
+library(glmnet)
+library(caret)
+
+reduced_model_data <- model_data %>%
+  dplyr::select(-Age, -MontlyIncomeUSD) %>%
+  drop_na()
+
+# Refit the model
+reduced_model <- train(
+  Churn ~ ., 
+  data = reduced_model_data, 
+  method = "glm", 
+  family = "binomial"
+)
+
+# Check VIF
+fitted_model <- reduced_model$finalModel
+vif(fitted_model)
+```
+
+```{r}
+# Kaggle: Netflix User Behavior Analysis (https://www.kaggle.com/datasets/chul24/data-neflix?select=Fact_Netflix_Usage.xlsx)
+
+subscriptions <- read_excel("/Users/eleanorking/Downloads/Dim_Subscription.xlsx")
+users <- read_excel("/Users/eleanorking/Downloads/Dim_User.xlsx")
+usage <- read_excel("/Users/eleanorking/Downloads/Fact_Netflix_Usage.xlsx")
+
+# Initial exploration of data
+glimpse(subscriptions)
+glimpse(users)
+glimpse(usage)
+
+# Clean column names for consistency
+subscriptions <- subscriptions %>%
+  rename_all(make.names)
+
+users <- users %>%
+  rename_all(make.names)
+
+usage <- usage %>%
+  rename_all(make.names)
+
+# Join all .xlsx
+full_data <- usage %>%
+  left_join(subscriptions, by = "SubscriptionID") %>%
+  left_join(users, by = c("User.ID" = "User.ID"))
+```
+
+```{r}
+# Calculate use days
+# Create churn variable
+full_data <- full_data %>%
+  mutate(
+    Join.Date = as.Date(Join.Date),
+    Last.Payment.Date = as.Date(Last.Payment.Date),
+    TenureDays = as.numeric(difftime(Last.Payment.Date, Join.Date, units = "days")),
+    Churn = if_else(Monthly.Revenue == 0, "Yes", "No")  # Set churn condition here
+  )
+```
+
+```{r}
+# Clean data for modeling
+# Note: original data misspelled MonthlyIncomeUSD as "MontlyIncomeUSD"
+model_data <- full_data %>%
+  dplyr::select(
+    Churn,
+    Gender,
+    Device,
+    Country,
+    Age,
+    MontlyIncomeUSD, 
+    Satisfaction,
+    Genre,
+    SubscriptionMethod,
+    MonthlyFeeUSD,
+    NoDevice,
+    PlanDurationMonth,
+    TimeConsumingPerWeek,
+    TenureDays
+  ) %>%
+  drop_na() %>%
+  mutate(across(where(is.character), as.factor))
+
+# Convert target to factor
+model_data$Churn <- as.factor(model_data$Churn)
+
+
+```
+
+```{r}
+set.seed(42)
+yes_data <- subset(model_data, Churn == "Yes")
+no_data  <- subset(model_data, Churn == "No")
+
+yes_train_index <- sample(seq_len(nrow(yes_data)), size = 0.8 * nrow(yes_data))
+no_train_index  <- sample(seq_len(nrow(no_data)),  size = 0.8 * nrow(no_data))
+
+train_set <- rbind(yes_data[yes_train_index, ], no_data[no_train_index, ])
+test_set  <- rbind(yes_data[-yes_train_index, ], no_data[-no_train_index, ])
+
+# Optional: shuffle rows
+train_set <- train_set[sample(nrow(train_set)), ]
+test_set  <- test_set[sample(nrow(test_set)), ]
+
+# Confirm class presence
+table(train_set$Churn)
+table(test_set$Churn)
+
+train_control <- trainControl(
+  method = "cv",
+  number = 10,
+  classProbs = TRUE,
+  summaryFunction = twoClassSummary
+)
+
+model <- train(
+  Churn ~ ., 
+  data = train_set, 
+  method = "glmnet", 
+  family = "binomial", 
+  trControl = train_control,
+  tuneGrid = expand.grid(alpha = 1, lambda = c(0.001, 0.01, 0.1, 1)),
+  metric = "ROC"
+)
+
+predictions_prob <- predict(model, newdata = test_set, type = "prob")
+
+# Convert to class labels (threshold = 0.5)
+predictions <- ifelse(predictions_prob$Yes > 0.5, "Yes", "No")
+predictions <- factor(predictions, levels = c("No", "Yes"))
+
+# Evaluate with confusion matrix
+confusionMatrix(predictions, test_set$Churn)
+
+prop.table(table(model_data$Churn))
+prop.table(table(train_set$Churn))
+```
+
