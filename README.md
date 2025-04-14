@@ -3,7 +3,7 @@
 
 - 🌱 Current courses: **Bayesian Data Analysis (R Programming), Techniques in Survey Sampling (R Programming), Advanced Data Modeling and Writing for Empirical Research (R Programming)**
 
-- 🔭 I’m currently working on
+- 🔭 I’m currently working on:
 
                 (1) Locating p53 Binding Sites within the MCF-7 Tissue using Bayesian Methods
                 (2) Analyzing STEM vs. Non-STEM Career Outcomes Using the National Survey of College Graduates
