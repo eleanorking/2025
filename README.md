@@ -3,8 +3,7 @@
 
 - 🌱 Current courses: **Bayesian Data Analysis (R Programming), Techniques in Survey Sampling (R Programming), Advanced Data Modeling and Writing for Empirical Research (R Programming)**
 
-- 🔭 I’m currently working on [Modeling Economic Productivity and Sectoral Influence](https://acrobat.adobe.com/id/urn:aaid:sc:US:2900948b-f87a-40cc-b681-25253e2c368f)
-
+- 🔭 I’m currently working on **Locating p53 Binding Sites within the MCF-7 Tissue using Bayesian Methods**
 - 👩‍💻 All of my projects are available at [https://github.com/eleanorking](https://github.com/eleanorking) , contact for access to scripts
 
 - 📝 My published work: [Crowd-based spatial risk assessment of urban flooding: Results from a municipal flood hotline in Detroit, MI](https://doi.org/10.1111/jfr3.12974)
